@@ -1,0 +1,1 @@
+# smc_fan_util
