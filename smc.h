@@ -18,11 +18,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef __SMC_H__
-#define __SMC_H__
-#endif
+#pragma once
 
-#define CMD_TOOL
 #define VERSION               "0.01"
 
 #define OP_NONE               0
@@ -40,6 +37,8 @@
 #define SMC_CMD_READ_KEYINFO  9
 #define SMC_CMD_READ_PLIMIT   11
 #define SMC_CMD_READ_VERS     12
+
+#define KEY_INFO_CACHE_SIZE 100
 
 #define DATATYPE_FLT          "flt "
 #define DATATYPE_FP1F         "fp1f"
@@ -119,20 +118,27 @@ typedef struct {
   SMCBytes_t              bytes;
 } SMCVal_t;
 
+struct
+{
+    UInt32 key;
+    SMCKeyData_keyInfo_t keyInfo;
+} g_keyInfoCache[KEY_INFO_CACHE_SIZE];
+
+
 UInt32 _strtoul(char *str, int size, int base);
 float _strtof(unsigned char *str, int size, int e);
+void _ultostr(char *str, UInt32 val);
 
-// Exclude command-line only code from smcFanControl UI
-#ifdef CMD_TOOL
 
 void smc_init();
 void smc_close();
 kern_return_t SMCReadKey(UInt32Char_t key, SMCVal_t *val);
+kern_return_t SMCReadKey2(UInt32Char_t key, SMCVal_t *val,io_connect_t conn);
 kern_return_t SMCWriteSimple(UInt32Char_t key,char *wvalue,io_connect_t conn);
-
-#endif //#ifdef CMD_TOOL
-
 kern_return_t SMCOpen(io_connect_t *conn);
 kern_return_t SMCClose(io_connect_t conn);
-kern_return_t SMCReadKey2(UInt32Char_t key, SMCVal_t *val,io_connect_t conn);
-
+kern_return_t SMCGetKeyInfo(UInt32 key, SMCKeyData_keyInfo_t *keyInfo, io_connect_t conn);
+kern_return_t SMCCall(int index, SMCKeyData_t *inputStructure, SMCKeyData_t *outputStructure);
+kern_return_t SMCCall2(int index, SMCKeyData_t *inputStructure, SMCKeyData_t *outputStructure, io_connect_t conn);
+kern_return_t SMCWriteKey(SMCVal_t writeVal);
+kern_return_t SMCWriteKey2(SMCVal_t writeVal, io_connect_t conn);

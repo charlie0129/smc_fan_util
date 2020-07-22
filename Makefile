@@ -1,21 +1,14 @@
-CC = gcc
-CFLAGS = -mmacosx-version-min=10.4  -Wall -O3 -framework IOKit
+CC = g++
+CFLAGS = -Wall -O3 -framework IOKit
 # CPPFLAGS = -DCMD_TOOL_BUILD
 
-all: sfc_manual smc
+all: smc_fan_util
 
-
-smc: smc.o
-	$(CC) $(CFLAGS) -o smc smc.o
-smc.o: smc.h smc.c
-	$(CC) $(CPPFLAGS) -c smc.c
-
-
-sfc_manual: sfc_manual.o
-	$(CC) $(CFLAGS) -o sfc_manual sfc_manual.o
-sfc_manual.o: smc.h sfc_manual.c
-	$(CC) $(CPPFLAGS) -c sfc_manual.c
+smc_fan_util: smc_fan_util.o
+	$(CC) $(CFLAGS) -o smc_fan_util smc_fan_util.o
+smc_fan_util.o: smc.h smc_fan_util.c smc.cpp
+	$(CC) $(CPPFLAGS) -c smc_fan_util.c smc.cpp
 
 
 clean:
-	-rm -f smc.o sfc_manual.o
+	-rm -f smc_fan_util.o
