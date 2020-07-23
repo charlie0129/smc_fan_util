@@ -1,13 +1,13 @@
 CC = g++
-CFLAGS = -Wall -O3 -framework IOKit
-# CPPFLAGS = -DCMD_TOOL_BUILD
+CXXFLAGS = -Wall -O3 -framework IOKit
 
 all: smc_fan_util
 
 smc_fan_util: smc_fan_util.o
-	$(CC) $(CFLAGS) -o smc_fan_util smc_fan_util.o
-smc_fan_util.o: smc.h smc_fan_util.c smc.cpp
-	$(CC) $(CPPFLAGS) -c smc_fan_util.c smc.cpp
+	$(CC) $(CXXFLAGS) -o smc_fan_util smc_fan_util.o
+
+smc_fan_util.o: smc.h smc_fan_util.cpp smc.cpp
+	$(CC) $(CXXFLAGS) -c smc_fan_util.cpp smc.cpp
 
 
 clean:

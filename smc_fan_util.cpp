@@ -6,6 +6,8 @@
 #include <IOKit/IOKitLib.h>
 #include "smc.h"
 
+#define DEBUG
+
 float getFloatFromVal(SMCVal_t val)
 {
     float fval = -1.0f;
@@ -147,7 +149,7 @@ int writeValue(char *key, char *in_value)
     for (i = 0; i < strlen(in_value); i++)
     {
         sprintf(c, "%c%c", in_value[i * 2], in_value[(i * 2) + 1]);
-        val.bytes[i] = (int) strtol(c, NULL, 16);
+        val.bytes[i] = (int) strtol(c, nullptr, 16);
     }
 
     val.dataSize = i / 2;
@@ -221,22 +223,22 @@ void SetFanSpeedByPercentage(double percentage)
     smc_init();
     SMCReadKey("F0Mn", &val);
     double fan0MinSpeed = getFloatFromVal(val);
-    #ifdef debug
+    #ifdef DEBUG
     printf("fan0mn %f\n", fan0MinSpeed);
     #endif
     SMCReadKey("F1Mn", &val);
     double fan1MinSpeed = getFloatFromVal(val);
-    #ifdef debug
+    #ifdef DEBUG
     printf("fan1mn %f\n", fan1MinSpeed);
     #endif
     SMCReadKey("F0Mx", &val);
     double fan0MaxSpeed = getFloatFromVal(val);
-    #ifdef debug
+    #ifdef DEBUG
     printf("fan0mx %f\n", fan0MaxSpeed);
     #endif
     SMCReadKey("F1Mx", &val);
     double fan1MaxSpeed = getFloatFromVal(val);
-    #ifdef debug
+    #ifdef DEBUG
     printf("fan1mx %f\n", fan1MaxSpeed);
     #endif
     smc_close();
@@ -295,6 +297,25 @@ void printUsage()
     puts("    sfc_manual -m 50        // set both fans to 50 percent");
     puts("    sfc_manual -m 1080 1000 // left: 1080rpm; right: 1000rpm");
     puts("    sfc_manual -a           // set fans to auto mode");
+}
+
+
+
+void setFanSpeed_slow(double temperature)
+{
+    static const double fan0MinRPM = 1303.0;
+    static const double fan1MinRPM = 1207.0;
+    static const double fan0MaxRPM = 5927.0;
+    static const double fan1MaxRPM = 5489.0;
+
+    static const double temperatureToMinRPM = 60;
+    static const double temperatureToMaxRPM = 80;
+
+    static const double fan0temperatureCoefficient = (fan0MaxRPM - fan0MinRPM) / (temperatureToMaxRPM - temperatureToMinRPM);
+    static const double fan0ConstantCoefficient = fan0MaxRPM - fan0temperatureCoefficient * temperatureToMaxRPM;
+
+    double fan0TargetRPM = fan0temperatureCoefficient * temperature + fan0ConstantCoefficient;
+    
 }
 
 #pragma clang diagnostic push
@@ -442,6 +463,9 @@ int main(int argc, char *argv[])
                     idxCPUTempHistory = 0;
                 }
                 CPUTempHistory[idxCPUTempHistory] = ReadMaxCPUTemperature();
+                #ifdef DEBUG
+                printf("cur: %.1f, ", CPUTempHistory[idxCPUTempHistory]);
+                #endif
                 idxCPUTempHistory++;
 
                 double sumCPUTempHistory = 0;
@@ -450,7 +474,9 @@ int main(int argc, char *argv[])
                     sumCPUTempHistory+=CPUTempHistory[i];
                 }
                 double avgCPUTemp = sumCPUTempHistory / (double)CPU_TEMP_LOG_DURATION;
-
+                #ifdef DEBUG
+                printf("avg: %.1f, ", avgCPUTemp);
+                #endif
                 // TODO
 
 
