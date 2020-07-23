@@ -3,10 +3,61 @@
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
+#include <ctime>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <IOKit/IOKitLib.h>
 #include "smc.h"
 
 #define DEBUG
+
+void signal_handler(int signal)
+{
+    exit(EXIT_SUCCESS);
+}
+
+static void daemonize()
+{
+    pid_t pid;
+
+    pid = fork();
+
+    if (pid < 0)
+    {
+        exit(EXIT_FAILURE);
+    }
+
+    if (pid > 0)
+    {
+        exit(EXIT_SUCCESS);
+    }
+
+    if (setsid() < 0)
+    {
+        exit(EXIT_FAILURE);
+    }
+
+    signal(SIGTERM, signal_handler);
+    signal(SIGHUP, signal_handler);
+
+    pid = fork();
+
+    if (pid < 0)
+    {
+        exit(EXIT_FAILURE);
+    }
+
+    if (pid > 0)
+    {
+        exit(EXIT_SUCCESS);
+    }
+
+    umask(0);
+
+    close(STDIN_FILENO);
+    close(STDOUT_FILENO);
+    close(STDERR_FILENO);
+}
 
 float getFloatFromVal(SMCVal_t val)
 {
@@ -118,7 +169,7 @@ double ReadMaxCPUTemperature(void)
     SMCVal_t val;
 
     sprintf(key, "TCMX");
-    smc_init();
+
     result = SMCReadKey(key, &val);
 
     double maxCPUTemperature;
@@ -132,7 +183,7 @@ double ReadMaxCPUTemperature(void)
         maxCPUTemperature = ((SInt16)ntohs(*(UInt16 *)val.bytes)) / 256.0;
     }
 
-    smc_close();
+
     return maxCPUTemperature;
 }
 
@@ -160,8 +211,6 @@ int writeValue(char *key, char *in_value)
         return 1;
     }
 
-    smc_init();
-
     if (strlen(key) > 0)
     {
         sprintf(val.key, key);
@@ -176,8 +225,34 @@ int writeValue(char *key, char *in_value)
     {
         printf("Error: specify a key to write\n");
     }
+}
 
-    smc_close();
+void setFanSpeed(size_t fanIndex, double targetSpeed)
+{
+    SMCVal_t      val;
+    kern_return_t result;
+
+    char key[5] = {"\0"};
+    sprintf(key, "F%dMd", fanIndex);
+
+    writeValue(key, "01");
+
+    float speed = static_cast<float>(targetSpeed);
+
+    for (int i = 0; i < 32; i++)
+    {
+        val.bytes[i] = 0;
+    }
+
+    sprintf(val.key, "F%dTg", fanIndex);
+    memcpy(val.bytes, &speed, sizeof(float));
+    val.dataSize = 4;
+    result = SMCWriteKey(val);
+
+    if (result != kIOReturnSuccess)
+    {
+        printf("Error: SMCWriteKey() = %08x\n", result);
+    }
 }
 
 void writeFanValue(char *key, float speed)
@@ -193,8 +268,6 @@ void writeFanValue(char *key, float speed)
         val.bytes[i] = 0;
     }
 
-
-    smc_init();
 
     if (strlen(key) > 0)
     {
@@ -213,14 +286,12 @@ void writeFanValue(char *key, float speed)
         printf("Error: specify a key to write\n");
     }
 
-    smc_close();
 }
 
 void SetFanSpeedByPercentage(double percentage)
 {
     //!!!!!!!ONLY APPLIES TO DOUBLE FAN MACHINES!!!!!!
     SMCVal_t      val;
-    smc_init();
     SMCReadKey("F0Mn", &val);
     double fan0MinSpeed = getFloatFromVal(val);
     #ifdef DEBUG
@@ -241,7 +312,7 @@ void SetFanSpeedByPercentage(double percentage)
     #ifdef DEBUG
     printf("fan1mx %f\n", fan1MaxSpeed);
     #endif
-    smc_close();
+
 
     int fan0TargetSpeed = (fan0MaxSpeed - fan0MinSpeed) * percentage + fan0MinSpeed;
 
@@ -301,21 +372,135 @@ void printUsage()
 
 
 
-void setFanSpeed_slow(double temperature)
+void setFanSpeedAccordingToTemperature(double temperature)
 {
     static const double fan0MinRPM = 1303.0;
     static const double fan1MinRPM = 1207.0;
     static const double fan0MaxRPM = 5927.0;
     static const double fan1MaxRPM = 5489.0;
+    static const double fan0RPMStep = (fan0MaxRPM - fan0MinRPM) / 100;
+    static const double fan1RPMStep = (fan1MaxRPM - fan1MinRPM) / 100;
 
     static const double temperatureToMinRPM = 60;
     static const double temperatureToMaxRPM = 80;
 
     static const double fan0temperatureCoefficient = (fan0MaxRPM - fan0MinRPM) / (temperatureToMaxRPM - temperatureToMinRPM);
     static const double fan0ConstantCoefficient = fan0MaxRPM - fan0temperatureCoefficient * temperatureToMaxRPM;
+    static const double fan1temperatureCoefficient = (fan1MaxRPM - fan1MinRPM) / (temperatureToMaxRPM - temperatureToMinRPM);
+    static const double fan1ConstantCoefficient = fan1MaxRPM - fan1temperatureCoefficient * temperatureToMaxRPM;
+
+    static bool areFansOn = true;
 
     double fan0TargetRPM = fan0temperatureCoefficient * temperature + fan0ConstantCoefficient;
-    
+    double fan1TargetRPM = fan1temperatureCoefficient * temperature + fan1ConstantCoefficient;
+
+
+    if (fan0TargetRPM < fan0MinRPM)
+    {
+        if (temperature < temperatureToMinRPM - 3)
+        {
+            fan0TargetRPM = 0;
+        }
+        else
+        {
+            fan0TargetRPM = fan0MinRPM;
+        }
+    }
+
+    if ((!areFansOn)
+        && temperature < temperatureToMinRPM + 3)
+    {
+        fan0TargetRPM = 0;
+    }
+
+
+
+    if (fan1TargetRPM < fan1MinRPM)
+    {
+        if (temperature < temperatureToMinRPM - 3)
+        {
+            fan1TargetRPM = 0;
+        }
+        else
+        {
+            fan1TargetRPM = fan1MinRPM;
+        }
+
+    }
+
+    if ((!areFansOn)
+        && temperature < temperatureToMinRPM + 3)
+    {
+        fan1TargetRPM = 0;
+    }
+
+
+    if (fan0TargetRPM > fan0MaxRPM)
+    {
+        fan0TargetRPM = fan0MaxRPM;
+    }
+
+    if (fan1TargetRPM > fan1MaxRPM)
+    {
+        fan1TargetRPM = fan1MaxRPM;
+    }
+
+
+    #ifdef DEBUG
+    printf("tg: %.1f %.1f, ", fan0TargetRPM, fan1TargetRPM);
+    #endif
+
+    // SMCVal_t      val;
+    // SMCReadKey("F0Ac", &val);
+    // double fan0ActualSpeed = getFloatFromVal(val);
+    // SMCVal_t      val;
+    // SMCReadKey("F1Ac", &val);
+    // double fan1ActualSpeed = getFloatFromVal(val);
+
+    // if (fabs(fan0TargetRPM - fan0ActualSpeed) > 80)
+    // {
+    //     if (fan0TargetRPM > fan0ActualSpeed)
+    //     {
+    //         setFanSpeed(0, fan0ActualSpeed + fan0RPMStep);
+    //     }
+    //     else
+    //     {
+    //         setFanSpeed(0, fan0ActualSpeed - fan0RPMStep);
+    //     }
+    // }
+
+    // if (fabs(fan1TargetRPM - fan1ActualSpeed) > 80)
+    // {
+    //     if (fan1TargetRPM > fan1ActualSpeed)
+    //     {
+    //         setFanSpeed(1, fan1ActualSpeed + fan1RPMStep);
+    //     }
+    //     else
+    //     {
+    //         setFanSpeed(1, fan1ActualSpeed - fan1RPMStep);
+    //     }
+    // }
+
+    if (fan0TargetRPM < 10)
+    {
+        areFansOn = false;
+    }
+    else
+    {
+        areFansOn = true;
+    }
+
+    if (fan1TargetRPM < 10)
+    {
+        areFansOn = false;
+    }
+    else
+    {
+        areFansOn = true;
+    }
+
+    setFanSpeed(0, fan0TargetRPM);
+    setFanSpeed(1, fan1TargetRPM);
 }
 
 #pragma clang diagnostic push
@@ -328,6 +513,8 @@ int main(int argc, char *argv[])
         printUsage();
         return 1;
     }
+
+    smc_init();
 
     if (!strcmp(argv[1], "-m"))
     {
@@ -429,18 +616,18 @@ int main(int argc, char *argv[])
         }
         else
         {
-            smc_init();
+
             kern_return_t result = SMCPrintFans();
 
             if (result != kIOReturnSuccess)
             {
                 printf("Error: SMCPrintFans() = %08x\n", result);
             }
-            smc_close();
+
             return 0;
         }
     }
-    else if (!strcmp(argv[1], "-ac"))
+    else if (!strcmp(argv[1], "-A"))
     {
         if (argc != 2)
         {
@@ -450,18 +637,18 @@ int main(int argc, char *argv[])
         }
         else
         {
-            smc_init();
-            const size_t CPU_TEMP_LOG_DURATION = 30;
+            const size_t CPU_TEMP_LOG_DURATION = 60;
             size_t idxCPUTempHistory = 0;
             double CPUTempHistory[CPU_TEMP_LOG_DURATION] = {0};
 
 
-            for(;;)
+            for (;;)
             {
-                if(idxCPUTempHistory >= CPU_TEMP_LOG_DURATION)
+                if (idxCPUTempHistory >= CPU_TEMP_LOG_DURATION)
                 {
                     idxCPUTempHistory = 0;
                 }
+
                 CPUTempHistory[idxCPUTempHistory] = ReadMaxCPUTemperature();
                 #ifdef DEBUG
                 printf("cur: %.1f, ", CPUTempHistory[idxCPUTempHistory]);
@@ -469,23 +656,28 @@ int main(int argc, char *argv[])
                 idxCPUTempHistory++;
 
                 double sumCPUTempHistory = 0;
-                for(size_t i = 0; i < CPU_TEMP_LOG_DURATION; i++)
+
+                for (size_t i = 0; i < CPU_TEMP_LOG_DURATION; i++)
                 {
-                    sumCPUTempHistory+=CPUTempHistory[i];
+                    sumCPUTempHistory += CPUTempHistory[i];
                 }
+
                 double avgCPUTemp = sumCPUTempHistory / (double)CPU_TEMP_LOG_DURATION;
                 #ifdef DEBUG
                 printf("avg: %.1f, ", avgCPUTemp);
                 #endif
-                // TODO
 
+                setFanSpeedAccordingToTemperature(avgCPUTemp);
 
+                #ifdef DEBUG
+                printf("\n");
+                fflush(stdout);
+                #endif
 
-
+                sleep(1);
             }
 
 
-            smc_close();
             return 0;
         }
     }
@@ -496,6 +688,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+
+    smc_close();
 }
 #pragma clang diagnostic pop
 
