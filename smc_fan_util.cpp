@@ -10,6 +10,7 @@
 #include "smc.h"
 
 #define DEBUG
+// #define DAEMON
 
 void signal_handler(int signal)
 {
@@ -521,6 +522,10 @@ void setFanSpeedAccordingToTemperature(double temperature)
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 int main(int argc, char *argv[])
 {
+    #ifdef DAEMON
+    daemonize();
+    #endif
+
     if (!(argc == 2 || argc == 3 || argc == 4))
     {
         puts("incorrect number of parameters.");
