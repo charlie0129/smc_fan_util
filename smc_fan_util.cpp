@@ -374,25 +374,39 @@ void printUsage()
 
 void setFanSpeedAccordingToTemperature(double temperature)
 {
-    static const double fan0MinRPM = 1303.0;
-    static const double fan1MinRPM = 1207.0;
+    static const double fan0MinRPM = 1481.75;
+    static const double fan1MinRPM = 1372.25;
     static const double fan0MaxRPM = 5927.0;
     static const double fan1MaxRPM = 5489.0;
     static const double fan0RPMStep = (fan0MaxRPM - fan0MinRPM) / 100;
     static const double fan1RPMStep = (fan1MaxRPM - fan1MinRPM) / 100;
 
-    static const double temperatureToMinRPM = 60;
-    static const double temperatureToMaxRPM = 80;
+    static const double temperatureToMinRPM = 60.0;
+    static const double temperatureToMaxRPM = 80.0;
 
-    static const double fan0temperatureCoefficient = (fan0MaxRPM - fan0MinRPM) / (temperatureToMaxRPM - temperatureToMinRPM);
-    static const double fan0ConstantCoefficient = fan0MaxRPM - fan0temperatureCoefficient * temperatureToMaxRPM;
-    static const double fan1temperatureCoefficient = (fan1MaxRPM - fan1MinRPM) / (temperatureToMaxRPM - temperatureToMinRPM);
-    static const double fan1ConstantCoefficient = fan1MaxRPM - fan1temperatureCoefficient * temperatureToMaxRPM;
+    static const double fan0TemperatureToSpeedCoefficient_a = (fan0MaxRPM - fan0MinRPM) / (temperatureToMaxRPM * temperatureToMaxRPM - 2 * temperatureToMaxRPM * temperatureToMinRPM + temperatureToMinRPM * temperatureToMinRPM);
+    static const double fan0TemperatureToSpeedCoefficient_b = -2 * temperatureToMinRPM * (fan0MaxRPM - fan0MinRPM) / (temperatureToMaxRPM * temperatureToMaxRPM - 2 * temperatureToMaxRPM * temperatureToMinRPM + temperatureToMinRPM * temperatureToMinRPM);
+    static const double fan0TemperatureToSpeedCoefficient_c = (fan0MaxRPM * temperatureToMinRPM * temperatureToMinRPM + fan0MinRPM * temperatureToMaxRPM * temperatureToMaxRPM - 2 * fan0MinRPM * temperatureToMaxRPM * temperatureToMinRPM) / (temperatureToMaxRPM * temperatureToMaxRPM - 2 * temperatureToMaxRPM * temperatureToMinRPM + temperatureToMinRPM * temperatureToMinRPM);
+    static const double fan1TemperatureToSpeedCoefficient_a = (fan1MaxRPM - fan1MinRPM) / (temperatureToMaxRPM * temperatureToMaxRPM - 2 * temperatureToMaxRPM * temperatureToMinRPM + temperatureToMinRPM * temperatureToMinRPM);
+    static const double fan1TemperatureToSpeedCoefficient_b = -2 * temperatureToMinRPM * (fan1MaxRPM - fan1MinRPM) / (temperatureToMaxRPM * temperatureToMaxRPM - 2 * temperatureToMaxRPM * temperatureToMinRPM + temperatureToMinRPM * temperatureToMinRPM);
+    static const double fan1TemperatureToSpeedCoefficient_c = (fan1MaxRPM * temperatureToMinRPM * temperatureToMinRPM + fan1MinRPM * temperatureToMaxRPM * temperatureToMaxRPM - 2 * fan1MinRPM * temperatureToMaxRPM * temperatureToMinRPM) / (temperatureToMaxRPM * temperatureToMaxRPM - 2 * temperatureToMaxRPM * temperatureToMinRPM + temperatureToMinRPM * temperatureToMinRPM);
 
+    //printf("%.1f %.1f %.1f", fan0TemperatureToSpeedCoefficient_a, fan0TemperatureToSpeedCoefficient_b, fan0TemperatureToSpeedCoefficient_c);
     static bool areFansOn = true;
+    double fan0TargetRPM = 0;
+    double fan1TargetRPM = 0;
 
-    double fan0TargetRPM = fan0temperatureCoefficient * temperature + fan0ConstantCoefficient;
-    double fan1TargetRPM = fan1temperatureCoefficient * temperature + fan1ConstantCoefficient;
+    if (temperature >= temperatureToMinRPM)
+    {
+        fan0TargetRPM = fan0TemperatureToSpeedCoefficient_a * temperature * temperature + fan0TemperatureToSpeedCoefficient_b * temperature + fan0TemperatureToSpeedCoefficient_c;
+        fan1TargetRPM = fan1TemperatureToSpeedCoefficient_a * temperature * temperature + fan1TemperatureToSpeedCoefficient_b * temperature + fan1TemperatureToSpeedCoefficient_c;
+    }
+    else
+    {
+        fan0TargetRPM = ((fan0MaxRPM - fan0MinRPM) / (temperatureToMaxRPM - temperatureToMinRPM)) * temperature + fan0MaxRPM - ((fan0MaxRPM - fan0MinRPM) / (temperatureToMaxRPM - temperatureToMinRPM)) * temperatureToMaxRPM;
+        fan1TargetRPM = ((fan1MaxRPM - fan1MinRPM) / (temperatureToMaxRPM - temperatureToMinRPM)) * temperature + fan1MaxRPM - ((fan1MaxRPM - fan1MinRPM) / (temperatureToMaxRPM - temperatureToMinRPM)) * temperatureToMaxRPM;
+    }
+
 
 
     if (fan0TargetRPM < fan0MinRPM)
