@@ -9,11 +9,18 @@
 #include <IOKit/IOKitLib.h>
 #include "smc.h"
 
+// TODO 
+// when error occurs, remember smc_close()
+
 #define DEBUG
-// #define DAEMON
+#define DAEMON
 
 void signal_handler(int signal)
 {
+    #ifdef DEBUG
+    printf("daemon ended.\n");
+    #endif
+    smc_close();
     exit(EXIT_SUCCESS);
 }
 
@@ -55,9 +62,9 @@ static void daemonize()
 
     umask(0);
 
-    close(STDIN_FILENO);
-    close(STDOUT_FILENO);
-    close(STDERR_FILENO);
+    // close(STDIN_FILENO);
+    // close(STDOUT_FILENO);
+    // close(STDERR_FILENO);
 }
 
 float getFloatFromVal(SMCVal_t val)
@@ -522,9 +529,7 @@ void setFanSpeedAccordingToTemperature(double temperature)
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 int main(int argc, char *argv[])
 {
-    #ifdef DAEMON
-    daemonize();
-    #endif
+
 
     if (!(argc == 2 || argc == 3 || argc == 4))
     {
@@ -656,6 +661,12 @@ int main(int argc, char *argv[])
         }
         else
         {
+            
+            #ifdef DAEMON
+            smc_close();
+            daemonize();
+            smc_init();
+            #endif
             const size_t CPU_TEMP_LOG_DURATION = 60;
             size_t idxCPUTempHistory = 0;
             double CPUTempHistory[CPU_TEMP_LOG_DURATION] = {0};
