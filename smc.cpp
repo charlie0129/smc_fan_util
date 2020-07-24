@@ -1,7 +1,3 @@
-//
-// Created by Charlie Chiang on 2020/7/22.
-//
-
 #include <unistd.h>
 #include <cstdio>
 #include <cstdlib>
