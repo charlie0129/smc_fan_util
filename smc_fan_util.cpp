@@ -667,7 +667,7 @@ int main(int argc, char *argv[])
             daemonize();
             smc_init();
             #endif
-            const size_t CPU_TEMP_LOG_DURATION = 60;
+            const size_t CPU_TEMP_LOG_DURATION = 70;
             size_t idxCPUTempHistory = 0;
             double CPUTempHistory[CPU_TEMP_LOG_DURATION] = {0};
 
