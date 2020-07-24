@@ -13,7 +13,7 @@
 // when error occurs, remember smc_close()
 
 #define DEBUG
-#define DAEMON
+// #define DAEMON
 
 void signal_handler(int signal)
 {
@@ -62,9 +62,9 @@ static void daemonize()
 
     umask(0);
 
-    // close(STDIN_FILENO);
-    // close(STDOUT_FILENO);
-    // close(STDERR_FILENO);
+    close(STDIN_FILENO);
+    close(STDOUT_FILENO);
+    close(STDERR_FILENO);
 }
 
 float getFloatFromVal(SMCVal_t val)
@@ -363,6 +363,7 @@ void printUsage()
     puts("    sfc_manual [-m speed | -a | -d]");
     puts("OPTIONS:");
     puts("    -a: set fans to auto mode (controlled by SMC).");
+    puts("    -A: set fans to auto mode (controlled by this program).");
     puts("    -d: disable fans.");
     puts("    -i: show fan information.");
     puts("    -m: set fan speed to a specific percentage or speed manually. (only input integers)");
@@ -377,8 +378,6 @@ void printUsage()
     puts("    sfc_manual -a           // set fans to auto mode");
 }
 
-
-
 void setFanSpeedAccordingToTemperature(double temperature)
 {
     static const double fan0MinRPM = 1481.75;
@@ -386,7 +385,7 @@ void setFanSpeedAccordingToTemperature(double temperature)
     static const double fan0MaxRPM = 5927.0;
     static const double fan1MaxRPM = 5489.0;
 
-    static const double temperatureToMinRPM = 60.0;
+    static const double temperatureToMinRPM = 58.0;
     static const double temperatureToMaxRPM = 80.0;
 
     static const double fan0TemperatureToSpeedCoefficient_a = (fan0MaxRPM - fan0MinRPM) / (temperatureToMaxRPM * temperatureToMaxRPM - 2 * temperatureToMaxRPM * temperatureToMinRPM + temperatureToMinRPM * temperatureToMinRPM);
@@ -469,37 +468,6 @@ void setFanSpeedAccordingToTemperature(double temperature)
     printf("tg: %.1f %.1f, ", fan0TargetRPM, fan1TargetRPM);
     #endif
 
-    // SMCVal_t      val;
-    // SMCReadKey("F0Ac", &val);
-    // double fan0ActualSpeed = getFloatFromVal(val);
-    // SMCVal_t      val;
-    // SMCReadKey("F1Ac", &val);
-    // double fan1ActualSpeed = getFloatFromVal(val);
-
-    // if (fabs(fan0TargetRPM - fan0ActualSpeed) > 80)
-    // {
-    //     if (fan0TargetRPM > fan0ActualSpeed)
-    //     {
-    //         setFanSpeed(0, fan0ActualSpeed + fan0RPMStep);
-    //     }
-    //     else
-    //     {
-    //         setFanSpeed(0, fan0ActualSpeed - fan0RPMStep);
-    //     }
-    // }
-
-    // if (fabs(fan1TargetRPM - fan1ActualSpeed) > 80)
-    // {
-    //     if (fan1TargetRPM > fan1ActualSpeed)
-    //     {
-    //         setFanSpeed(1, fan1ActualSpeed + fan1RPMStep);
-    //     }
-    //     else
-    //     {
-    //         setFanSpeed(1, fan1ActualSpeed - fan1RPMStep);
-    //     }
-    // }
-
     if (fan0TargetRPM < 10)
     {
         areFansOn = false;
@@ -532,7 +500,7 @@ int main(int argc, char *argv[])
     {
         puts("incorrect number of parameters.");
         printUsage();
-        return 1;
+        return EXIT_FAILURE;
     }
 
     smc_init();
@@ -543,7 +511,7 @@ int main(int argc, char *argv[])
         {
             puts("incorrect parameters.");
             printUsage();
-            return 1;
+            return EXIT_FAILURE;
         }
         else if (argc == 3)
         {
@@ -556,10 +524,10 @@ int main(int argc, char *argv[])
             {
                 puts("the parameter should be only numbers");
                 printUsage();
-                return 1;
+                return EXIT_FAILURE;
             }
 
-            return 0;
+            return EXIT_SUCCESS;
         }
         else
         {
@@ -574,7 +542,7 @@ int main(int argc, char *argv[])
             {
                 puts("the parameter should only be numbers.");
                 printUsage();
-                return 1;
+                return EXIT_FAILURE;
             }
 
             if (strspn(argv[3], "0123456789") == strlen(argv[3]))
@@ -585,14 +553,14 @@ int main(int argc, char *argv[])
             {
                 puts("the parameter should only be numbers.");
                 printUsage();
-                return 1;
+                return EXIT_FAILURE;
             }
 
             writeValue("F0Md", "01");
             writeValue("F1Md", "01");
             writeFanValue("F0Tg", fan0spd);
             writeFanValue("F1Tg", fan1spd);
-            return 0;
+            return EXIT_SUCCESS;
         }
     }
     else if (!strcmp(argv[1], "-a"))
@@ -601,13 +569,13 @@ int main(int argc, char *argv[])
         {
             puts("incorrect parameters.");
             printUsage();
-            return 1;
+            return EXIT_FAILURE;
         }
         else
         {
             writeValue("F0Md", "00");
             writeValue("F1Md", "00");
-            return 0;
+            return EXIT_SUCCESS;
         }
     }
     else if (!strcmp(argv[1], "-d"))
@@ -616,7 +584,7 @@ int main(int argc, char *argv[])
         {
             puts("incorrect parameters.");
             printUsage();
-            return 1;
+            return EXIT_FAILURE;
         }
         else
         {
@@ -624,7 +592,7 @@ int main(int argc, char *argv[])
             writeValue("F1Md", "01");
             writeFanValue("F0Tg", (float)0);
             writeFanValue("F1Tg", (float)0);
-            return 0;
+            return EXIT_SUCCESS;
         }
     }
     else if (!strcmp(argv[1], "-i"))
@@ -633,7 +601,7 @@ int main(int argc, char *argv[])
         {
             puts("incorrect parameters.");
             printUsage();
-            return 1;
+            return EXIT_FAILURE;
         }
         else
         {
@@ -645,7 +613,7 @@ int main(int argc, char *argv[])
                 printf("Error: SMCPrintFans() = %08x\n", result);
             }
 
-            return 0;
+            return EXIT_SUCCESS;
         }
     }
     else if (!strcmp(argv[1], "-A"))
@@ -654,7 +622,7 @@ int main(int argc, char *argv[])
         {
             puts("incorrect parameters.");
             printUsage();
-            return 1;
+            return EXIT_FAILURE;
         }
         else
         {
@@ -709,14 +677,14 @@ int main(int argc, char *argv[])
             }
 
 
-            return 0;
+            return EXIT_SUCCESS;
         }
     }
     else
     {
         puts("incorrect parameters.");
         printUsage();
-        return 1;
+        return EXIT_FAILURE;
     }
 
 
@@ -724,11 +692,7 @@ int main(int argc, char *argv[])
 }
 #pragma clang diagnostic pop
 
-
 //TODO:
 //encapculate into classes
 //split files
 //optimize code
-
-
-
