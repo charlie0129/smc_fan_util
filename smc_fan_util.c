@@ -1,9 +1,9 @@
 #include <unistd.h>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <cmath>
-#include <ctime>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <IOKit/IOKitLib.h>
@@ -171,7 +171,6 @@ kern_return_t SMCPrintFans(void)
 
 double ReadMaxCPUTemperature(void)
 {
-    int c;
     kern_return_t result;
     UInt32Char_t key = {0};
     SMCVal_t val;
@@ -180,7 +179,7 @@ double ReadMaxCPUTemperature(void)
 
     result = SMCReadKey(key, &val);
 
-    double maxCPUTemperature;
+    double maxCPUTemperature = 0;
 
     if (result != kIOReturnSuccess)
     {
@@ -208,7 +207,7 @@ int writeValue(char *key, char *in_value)
     for (i = 0; i < strlen(in_value); i++)
     {
         sprintf(c, "%c%c", in_value[i * 2], in_value[(i * 2) + 1]);
-        val.bytes[i] = (int) strtol(c, nullptr, 16);
+        val.bytes[i] = (int) strtol(c, NULL, 16);
     }
 
     val.dataSize = i / 2;
@@ -221,7 +220,7 @@ int writeValue(char *key, char *in_value)
 
     if (strlen(key) > 0)
     {
-        sprintf(val.key, key);
+        sprintf(val.key, "%s", key);
         result = SMCWriteKey(val);
 
         if (result != kIOReturnSuccess)
@@ -235,7 +234,7 @@ int writeValue(char *key, char *in_value)
     }
 }
 
-void setFanSpeed(size_t fanIndex, double targetSpeed)
+void setFanSpeed(int fanIndex, double targetSpeed)
 {
     SMCVal_t      val;
     kern_return_t result;
@@ -245,7 +244,7 @@ void setFanSpeed(size_t fanIndex, double targetSpeed)
 
     writeValue(key, "01");
 
-    float speed = static_cast<float>(targetSpeed);
+    float speed = (float)targetSpeed;
 
     for (int i = 0; i < 32; i++)
     {
@@ -279,7 +278,7 @@ void writeFanValue(char *key, float speed)
 
     if (strlen(key) > 0)
     {
-        sprintf(val.key, key);
+        sprintf(val.key, "%s", key);
         memcpy(val.bytes, &speed2, sizeof(float));
         val.dataSize = 4;
         result = SMCWriteKey(val);
@@ -386,8 +385,6 @@ void setFanSpeedAccordingToTemperature(double temperature)
     static const double fan1MinRPM = 1372.25;
     static const double fan0MaxRPM = 5927.0;
     static const double fan1MaxRPM = 5489.0;
-    static const double fan0RPMStep = (fan0MaxRPM - fan0MinRPM) / 100;
-    static const double fan1RPMStep = (fan1MaxRPM - fan1MinRPM) / 100;
 
     static const double temperatureToMinRPM = 60.0;
     static const double temperatureToMaxRPM = 80.0;
@@ -399,7 +396,7 @@ void setFanSpeedAccordingToTemperature(double temperature)
     static const double fan1TemperatureToSpeedCoefficient_b = -2 * temperatureToMinRPM * (fan1MaxRPM - fan1MinRPM) / (temperatureToMaxRPM * temperatureToMaxRPM - 2 * temperatureToMaxRPM * temperatureToMinRPM + temperatureToMinRPM * temperatureToMinRPM);
     static const double fan1TemperatureToSpeedCoefficient_c = (fan1MaxRPM * temperatureToMinRPM * temperatureToMinRPM + fan1MinRPM * temperatureToMaxRPM * temperatureToMaxRPM - 2 * fan1MinRPM * temperatureToMaxRPM * temperatureToMinRPM) / (temperatureToMaxRPM * temperatureToMaxRPM - 2 * temperatureToMaxRPM * temperatureToMinRPM + temperatureToMinRPM * temperatureToMinRPM);
 
-    //printf("%.1f %.1f %.1f", fan0TemperatureToSpeedCoefficient_a, fan0TemperatureToSpeedCoefficient_b, fan0TemperatureToSpeedCoefficient_c);
+    // printf("%.1f %.1f %.1f", fan0TemperatureToSpeedCoefficient_a, fan0TemperatureToSpeedCoefficient_b, fan0TemperatureToSpeedCoefficient_c);
     static bool areFansOn = true;
     double fan0TargetRPM = 0;
     double fan1TargetRPM = 0;
@@ -667,10 +664,14 @@ int main(int argc, char *argv[])
             daemonize();
             smc_init();
             #endif
-            const size_t CPU_TEMP_LOG_DURATION = 70;
+            const size_t CPU_TEMP_LOG_DURATION = 60;
             size_t idxCPUTempHistory = 0;
             double CPUTempHistory[CPU_TEMP_LOG_DURATION] = {0};
 
+            for(size_t i = 0; i < CPU_TEMP_LOG_DURATION; i++)
+            {
+                CPUTempHistory[i] = 50.0;
+            }
 
             for (;;)
             {

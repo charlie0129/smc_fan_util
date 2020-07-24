@@ -1,7 +1,7 @@
 #include <unistd.h>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <IOKit/IOKitLib.h>
 #include <libkern/OSAtomic.h>
 #include "smc.h"
@@ -91,7 +91,7 @@ kern_return_t SMCWriteSimple(UInt32Char_t key, char *wvalue, io_connect_t conn)
     }
 
     val.dataSize = i / 2;
-    sprintf(val.key, key);
+    sprintf(val.key, "%s", key);
     result = SMCWriteKey2(val, conn);
 
     if (result != kIOReturnSuccess)
@@ -158,7 +158,7 @@ kern_return_t SMCReadKey2(UInt32Char_t key, SMCVal_t *val, io_connect_t conn)
     memset(val, 0, sizeof(SMCVal_t));
 
     inputStructure.key = _strtoul(key, 4, 16);
-    sprintf(val->key, key);
+    sprintf(val->key, "%s", key);
 
     result = SMCGetKeyInfo(inputStructure.key, &outputStructure.keyInfo, conn);
 
