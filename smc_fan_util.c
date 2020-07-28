@@ -12,8 +12,6 @@
 // TODO 
 // when error occurs, remember smc_close()
 
-#define DEBUG
-// #define DAEMON
 
 void signal_handler(int signal)
 {
@@ -426,7 +424,7 @@ void setFanSpeedAccordingToTemperature(double temperature)
     }
 
     if ((!areFansOn)
-        && temperature < temperatureToMinRPM + 3)
+        && temperature < temperatureToMinRPM)
     {
         fan0TargetRPM = 0;
     }
@@ -447,7 +445,7 @@ void setFanSpeedAccordingToTemperature(double temperature)
     }
 
     if ((!areFansOn)
-        && temperature < temperatureToMinRPM + 3)
+        && temperature < temperatureToMinRPM)
     {
         fan1TargetRPM = 0;
     }
@@ -465,7 +463,7 @@ void setFanSpeedAccordingToTemperature(double temperature)
 
 
     #ifdef DEBUG
-    printf("tg: %.1f %.1f, ", fan0TargetRPM, fan1TargetRPM);
+    printf("tg: %.0f %.0f", fan0TargetRPM, fan1TargetRPM);
     #endif
 
     if (fan0TargetRPM < 10)
@@ -490,6 +488,18 @@ void setFanSpeedAccordingToTemperature(double temperature)
     setFanSpeed(1, fan1TargetRPM);
 }
 
+void exit_failure()
+{
+    smc_close();
+    exit(EXIT_FAILURE);
+}
+
+void exit_success()
+{
+    smc_close();
+    exit(EXIT_SUCCESS);
+}
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 int main(int argc, char *argv[])
@@ -500,7 +510,7 @@ int main(int argc, char *argv[])
     {
         puts("incorrect number of parameters.");
         printUsage();
-        return EXIT_FAILURE;
+        exit_failure();
     }
 
     smc_init();
@@ -511,7 +521,7 @@ int main(int argc, char *argv[])
         {
             puts("incorrect parameters.");
             printUsage();
-            return EXIT_FAILURE;
+            exit_failure();
         }
         else if (argc == 3)
         {
@@ -524,10 +534,10 @@ int main(int argc, char *argv[])
             {
                 puts("the parameter should be only numbers");
                 printUsage();
-                return EXIT_FAILURE;
+                exit_failure();
             }
 
-            return EXIT_SUCCESS;
+            exit_success();
         }
         else
         {
@@ -542,7 +552,7 @@ int main(int argc, char *argv[])
             {
                 puts("the parameter should only be numbers.");
                 printUsage();
-                return EXIT_FAILURE;
+                exit_failure();
             }
 
             if (strspn(argv[3], "0123456789") == strlen(argv[3]))
@@ -553,14 +563,14 @@ int main(int argc, char *argv[])
             {
                 puts("the parameter should only be numbers.");
                 printUsage();
-                return EXIT_FAILURE;
+                exit_failure();
             }
 
             writeValue("F0Md", "01");
             writeValue("F1Md", "01");
             writeFanValue("F0Tg", fan0spd);
             writeFanValue("F1Tg", fan1spd);
-            return EXIT_SUCCESS;
+            exit_success();
         }
     }
     else if (!strcmp(argv[1], "-a"))
@@ -569,13 +579,13 @@ int main(int argc, char *argv[])
         {
             puts("incorrect parameters.");
             printUsage();
-            return EXIT_FAILURE;
+            exit_failure();
         }
         else
         {
             writeValue("F0Md", "00");
             writeValue("F1Md", "00");
-            return EXIT_SUCCESS;
+            exit_success();
         }
     }
     else if (!strcmp(argv[1], "-d"))
@@ -584,7 +594,7 @@ int main(int argc, char *argv[])
         {
             puts("incorrect parameters.");
             printUsage();
-            return EXIT_FAILURE;
+            exit_failure();
         }
         else
         {
@@ -592,7 +602,7 @@ int main(int argc, char *argv[])
             writeValue("F1Md", "01");
             writeFanValue("F0Tg", (float)0);
             writeFanValue("F1Tg", (float)0);
-            return EXIT_SUCCESS;
+            exit_success();
         }
     }
     else if (!strcmp(argv[1], "-i"))
@@ -601,7 +611,7 @@ int main(int argc, char *argv[])
         {
             puts("incorrect parameters.");
             printUsage();
-            return EXIT_FAILURE;
+            exit_failure();
         }
         else
         {
@@ -613,7 +623,7 @@ int main(int argc, char *argv[])
                 printf("Error: SMCPrintFans() = %08x\n", result);
             }
 
-            return EXIT_SUCCESS;
+            exit_success();
         }
     }
     else if (!strcmp(argv[1], "-A"))
@@ -622,7 +632,7 @@ int main(int argc, char *argv[])
         {
             puts("incorrect parameters.");
             printUsage();
-            return EXIT_FAILURE;
+            exit_failure();
         }
         else
         {
@@ -632,13 +642,13 @@ int main(int argc, char *argv[])
             daemonize();
             smc_init();
             #endif
-            const size_t CPU_TEMP_LOG_DURATION = 60;
+            const size_t CPU_TEMP_LOG_DURATION = 90;
             size_t idxCPUTempHistory = 0;
             double CPUTempHistory[CPU_TEMP_LOG_DURATION] = {0};
 
             for(size_t i = 0; i < CPU_TEMP_LOG_DURATION; i++)
             {
-                CPUTempHistory[i] = 50.0;
+                CPUTempHistory[i] = 55.0;
             }
 
             for (;;)
@@ -650,7 +660,7 @@ int main(int argc, char *argv[])
 
                 CPUTempHistory[idxCPUTempHistory] = ReadMaxCPUTemperature();
                 #ifdef DEBUG
-                printf("cur: %.1f, ", CPUTempHistory[idxCPUTempHistory]);
+                printf("cur: %.1f | ", CPUTempHistory[idxCPUTempHistory]);
                 #endif
                 idxCPUTempHistory++;
 
@@ -663,7 +673,7 @@ int main(int argc, char *argv[])
 
                 double avgCPUTemp = sumCPUTempHistory / (double)CPU_TEMP_LOG_DURATION;
                 #ifdef DEBUG
-                printf("avg: %.1f, ", avgCPUTemp);
+                printf("avg: %.2f | ", avgCPUTemp);
                 #endif
 
                 setFanSpeedAccordingToTemperature(avgCPUTemp);
@@ -677,18 +687,18 @@ int main(int argc, char *argv[])
             }
 
 
-            return EXIT_SUCCESS;
         }
     }
     else
     {
         puts("incorrect parameters.");
         printUsage();
-        return EXIT_FAILURE;
+        exit_failure();
     }
 
 
     smc_close();
+    return EXIT_SUCCESS;
 }
 #pragma clang diagnostic pop
 
