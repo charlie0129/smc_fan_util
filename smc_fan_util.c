@@ -356,24 +356,26 @@ void printUsage()
     puts("DESCRIPTION:");
     puts("    This utility enables you to control your Mac's fans manually.");
     puts("    Note: This utility only applies to Intel Macs with 2 fans.");
-    puts("    You should execute this utility with root privileges.");
+    puts("    !!!You should execute this utility with root privileges!!!");
     puts("SYNOPSIS:");
-    puts("    sfc_manual [-m speed | -a | -d]");
+    puts("    sfc_manual [-a] | [-A] | [-d] | [-h] | [-i] |");
+    puts("               [-m speed_percentage] | [-m speed_left speed_right]");
     puts("OPTIONS:");
     puts("    -a: set fans to auto mode (controlled by SMC).");
     puts("    -A: set fans to auto mode (controlled by this program).");
-    puts("    -d: disable fans.");
+    puts("    -d: turn off fans completely.");
+    puts("        Note: This could easily cause your machine to overheat!!!");
+    puts("    -h: display this message.");
     puts("    -i: show fan information.");
-    puts("    -m: set fan speed to a specific percentage or speed manually. (only input integers)");
-    puts("        -m <percentage> OR");
-    puts("        -m <left fan RPM> <right fan RPM>");
+    puts("    -m <percentage>: set fan speeds to a specific percentage manually. (only input integers)");
+    puts("    -m <speed_left> <speed_right>: set fan speeds to specific speeds manually. (only input integers)");
     puts("        Note: If you set fan speeds by RPM, it ignores Apple's limits.");
     puts("              You can \"overclock\" or \"underclock\" your fans,");
     puts("              but ridiculous values may damage you machine!!!");
     puts("EXAMPLES:");
     puts("    sfc_manual -m 50        // set both fans to 50 percent");
     puts("    sfc_manual -m 1080 1000 // left: 1080rpm; right: 1000rpm");
-    puts("    sfc_manual -a           // set fans to auto mode");
+    puts("    sfc_manual -a           // set fans to auto mode (SMC)");
 }
 
 void setFanSpeedAccordingToTemperature(double temperature)
@@ -687,6 +689,21 @@ int main(int argc, char *argv[])
             }
 
 
+        }
+    }
+    else if (!strcmp(argv[1], "-h"))
+    {
+        if (argc != 2)
+        {
+            puts("incorrect parameters.");
+            printUsage();
+            exit_failure();
+        }
+        else
+        {
+            printUsage();
+
+            exit_success();
         }
     }
     else
