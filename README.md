@@ -2,6 +2,7 @@
 
 A small utility to control your MacBook's fans with a built-in fan curve optimized for smooth fan speed shifts.
 
+```
 DESCRIPTION:
     This utility enables you to control your Mac's fans manually.
     Note: This utility only applies to Intel Macs with 2 fans.
@@ -25,6 +26,7 @@ EXAMPLES:
     sfc_manual -m 50        // set both fans to 50 percent
     sfc_manual -m 1080 1000 // left: 1080rpm; right: 1000rpm
     sfc_manual -a           // set fans to auto mode (SMC)
+```
 
 #### Note: currently only applies to MacBooks with two fans!
 
