@@ -9,9 +9,8 @@
 #include <IOKit/IOKitLib.h>
 #include "smc.h"
 
-// TODO 
-// when error occurs, remember smc_close()
-
+// TODO:
+// apply to macs with different numbers of fans
 
 void signal_handler(int signal)
 {
@@ -343,10 +342,8 @@ void SetFanSpeedByPercentage(double percentage)
         fan1TargetSpeed = fan1MinSpeed;
     }
 
-    writeValue("F0Md", "01");
-    writeValue("F1Md", "01");
-    writeFanValue("F0Tg", (float)fan0TargetSpeed);
-    writeFanValue("F1Tg", (float)fan1TargetSpeed);
+    setFanSpeed(0, fan0TargetSpeed);
+    setFanSpeed(1, fan1TargetSpeed);
     return;
 }
 
@@ -367,8 +364,8 @@ void printUsage()
     puts("        Note: This could easily cause your machine to overheat!!!");
     puts("    -h: display this message.");
     puts("    -i: show fan information.");
-    puts("    -m <percentage>: set fan speeds to a specific percentage manually. (only input integers)");
-    puts("    -m <speed_left> <speed_right>: set fan speeds to specific speeds manually. (only input integers)");
+    puts("    -m <percentage>: set fan speeds to a specific percentage manually.");
+    puts("    -m <speed_left> <speed_right>: set fan speeds to specific speeds manually.");
     puts("        Note: If you set fan speeds by RPM, it ignores Apple's limits.");
     puts("              You can \"overclock\" or \"underclock\" your fans,");
     puts("              but ridiculous values may damage you machine!!!");
@@ -510,8 +507,9 @@ int main(int argc, char *argv[])
 
     if (!(argc == 2 || argc == 3 || argc == 4))
     {
-        puts("incorrect number of parameters.");
-        printUsage();
+        puts("Incorrect number of parameters.");
+        puts("Use option \"-h\" for help.");
+        // printUsage();
         exit_failure();
     }
 
@@ -521,8 +519,9 @@ int main(int argc, char *argv[])
     {
         if (!(argc == 3 || argc == 4))
         {
-            puts("incorrect parameters.");
-            printUsage();
+            puts("Incorrect parameters.");
+            puts("Use option \"-h\" for help.");
+            // printUsage();
             exit_failure();
         }
         else if (argc == 3)
@@ -534,8 +533,9 @@ int main(int argc, char *argv[])
             }
             else
             {
-                puts("the parameter should be only numbers");
-                printUsage();
+                puts("The parameter should only be integers.");
+                puts("Use option \"-h\" for help.");
+                // printUsage();
                 exit_failure();
             }
 
@@ -543,35 +543,35 @@ int main(int argc, char *argv[])
         }
         else
         {
-            float fan0spd;
-            float fan1spd;
+            double fan0spd;
+            double fan1spd;
 
             if (strspn(argv[2], "0123456789") == strlen(argv[2]))
             {
-                fan0spd = (float)atoi(argv[2]);
+                fan0spd = (double)atoi(argv[2]);
             }
             else
             {
-                puts("the parameter should only be numbers.");
-                printUsage();
+                puts("The parameter should only be integers.");
+                puts("Use option \"-h\" for help.");
+                // printUsage();
                 exit_failure();
             }
 
             if (strspn(argv[3], "0123456789") == strlen(argv[3]))
             {
-                fan1spd = (float)atoi(argv[3]);
+                fan1spd = (double)atoi(argv[3]);
             }
             else
             {
-                puts("the parameter should only be numbers.");
-                printUsage();
+                puts("The parameter should only be integers.");
+                puts("Use option \"-h\" for help.");
+                // printUsage();
                 exit_failure();
             }
 
-            writeValue("F0Md", "01");
-            writeValue("F1Md", "01");
-            writeFanValue("F0Tg", fan0spd);
-            writeFanValue("F1Tg", fan1spd);
+            setFanSpeed(0, fan0spd);
+            setFanSpeed(1, fan1spd);
             exit_success();
         }
     }
@@ -579,8 +579,9 @@ int main(int argc, char *argv[])
     {
         if (argc != 2)
         {
-            puts("incorrect parameters.");
-            printUsage();
+            puts("Incorrect parameters.");
+            puts("Use option \"-h\" for help.");
+            // printUsage();
             exit_failure();
         }
         else
@@ -594,16 +595,15 @@ int main(int argc, char *argv[])
     {
         if (argc != 2)
         {
-            puts("incorrect parameters.");
-            printUsage();
+            puts("Incorrect parameters.");
+            puts("Use option \"-h\" for help.");
+            // printUsage();
             exit_failure();
         }
         else
         {
-            writeValue("F0Md", "01");
-            writeValue("F1Md", "01");
-            writeFanValue("F0Tg", (float)0);
-            writeFanValue("F1Tg", (float)0);
+            setFanSpeed(0, 0.0);
+            setFanSpeed(1, 0.0);
             exit_success();
         }
     }
@@ -611,8 +611,9 @@ int main(int argc, char *argv[])
     {
         if (argc != 2)
         {
-            puts("incorrect parameters.");
-            printUsage();
+            puts("Incorrect parameters.");
+            puts("Use option \"-h\" for help.");
+            // printUsage();
             exit_failure();
         }
         else
@@ -632,8 +633,9 @@ int main(int argc, char *argv[])
     {
         if (argc != 2)
         {
-            puts("incorrect parameters.");
-            printUsage();
+            puts("Incorrect parameters.");
+            puts("Use option \"-h\" for help.");
+            // printUsage();
             exit_failure();
         }
         else
@@ -695,8 +697,9 @@ int main(int argc, char *argv[])
     {
         if (argc != 2)
         {
-            puts("incorrect parameters.");
-            printUsage();
+            puts("Incorrect parameters.");
+            puts("Use option \"-h\" for help.");
+            // printUsage();
             exit_failure();
         }
         else
@@ -708,11 +711,11 @@ int main(int argc, char *argv[])
     }
     else
     {
-        puts("incorrect parameters.");
-        printUsage();
+        puts("Incorrect parameters.");
+        puts("Use option \"-h\" for help.");
+        // printUsage();
         exit_failure();
     }
-
 
     smc_close();
     return EXIT_SUCCESS;
