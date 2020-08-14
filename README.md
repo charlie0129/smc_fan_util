@@ -17,8 +17,8 @@ OPTIONS:
         Note: This could easily cause your machine to overheat!!!
     -h: display this message.
     -i: show fan information.
-    -m <percentage>: set fan speeds to a specific percentage manually. (only input integers)
-    -m <speed_left> <speed_right>: set fan speeds to specific speeds manually. (only input integers)
+    -m <percentage>: set fan speeds to a specific percentage manually.
+    -m <speed_left> <speed_right>: set fan speeds to specific speeds manually.
         Note: If you set fan speeds by RPM, it ignores Apple's limits.
               You can "overclock" or "underclock" your fans,
               but ridiculous values may damage you machine!!!
