@@ -27,6 +27,3 @@ EXAMPLES:
     sfc_manual -m 1080 1000 // left: 1080rpm; right: 1000rpm
     sfc_manual -a           // set fans to auto mode (SMC)
 ```
-
-#### Note: currently only applies to MacBooks with two fans!
-
