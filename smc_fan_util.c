@@ -670,9 +670,10 @@ int main(int argc, char *argv[])
             size_t idxCPUTempHistory = 0;
             double CPUTempHistory[CPU_TEMP_LOG_DURATION] = {0};
 
+            double CPUTemperatureNow = ReadMaxCPUTemperature();
             for(size_t i = 0; i < CPU_TEMP_LOG_DURATION; i++)
             {
-                CPUTempHistory[i] = 55.0;
+                CPUTempHistory[i] = CPUTemperatureNow;
             }
 
             for (;;)
