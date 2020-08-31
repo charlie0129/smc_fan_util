@@ -94,6 +94,44 @@ float getFloatFromVal(SMCVal_t val)
     return fval;
 }
 
+float getFloatFromKey(const char *key)
+{
+
+    kern_return_t result;
+    SMCVal_t val;
+
+    result = SMCReadKey(key, &val);
+
+    if (result != kIOReturnSuccess)
+    {
+        printf("Error: SMCReadKey() = %08x\n", result);
+    }
+
+    float fval = -1.0f;
+
+    if (val.dataSize > 0)
+    {
+        if (strcmp(val.dataType, DATATYPE_FLT) == 0 && val.dataSize == 4)
+        {
+            memcpy(&fval, val.bytes, sizeof(float));
+        }
+        else if (strcmp(val.dataType, DATATYPE_FPE2) == 0 && val.dataSize == 2)
+        {
+            fval = _strtof(val.bytes, val.dataSize, 2);
+        }
+        else if (strcmp(val.dataType, DATATYPE_UINT16) == 0 && val.dataSize == 2)
+        {
+            fval = (float) _strtoul((char *) val.bytes, val.dataSize, 10);
+        }
+        else if (strcmp(val.dataType, DATATYPE_UINT8) == 0 && val.dataSize == 1)
+        {
+            fval = (float) _strtoul((char *) val.bytes, val.dataSize, 10);
+        }
+    }
+
+    return fval;
+}
+
 kern_return_t SMCPrintFans(void)
 {
     kern_return_t result;
@@ -358,11 +396,12 @@ void printUsage()
     puts("    Note: This utility only applies to Intel Macs with 2 fans.");
     puts("    !!!You should execute this utility with root privileges!!!");
     puts("SYNOPSIS:");
-    puts("    sfc_manual [-a] | [-A] | [-d] | [-h] | [-i] |");
+    puts("    sfc_manual [-a] | [-A] | [--SMC-enhanced] | [-d] | [-h] | [-i]");
     puts("               [-m speed_percentage] | [-m speed_left speed_right]");
     puts("OPTIONS:");
-    puts("    -a: set fans to auto mode (controlled by SMC).");
-    puts("    -A: set fans to auto mode (controlled by this program).");
+    puts("    -a: Auto mode (controlled by SMC).");
+    puts("    -A: Auto mode (controlled by this program).");
+    puts("    --SMC-enhanced: Auto mode (an enhanced fan curve using SMC).");
     puts("    -d: turn off fans completely.");
     puts("        Note: This could easily cause your machine to overheat!!!");
     puts("    -h: display this message.");
@@ -426,8 +465,9 @@ void setFanSpeedAccordingToTemperature(double temperature)
     {
         fan0TargetRPM = 241.8 * temperature - 13417.0;
     }
+
     fan1TargetRPM = fan0TargetRPM * fan1ToFan0Ratio;
-    
+
 
 
     if (fan0TargetRPM < fan0MinRPM)
@@ -519,8 +559,6 @@ void exit_success()
     exit(EXIT_SUCCESS);
 }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wmissing-noreturn"
 int main(int argc, char *argv[])
 {
 
@@ -563,8 +601,8 @@ int main(int argc, char *argv[])
         }
         else
         {
-            double fan0spd;
-            double fan1spd;
+            double fan0spd = 0.0;
+            double fan1spd = 0.0;
 
             if (strspn(argv[2], "0123456789") == strlen(argv[2]))
             {
@@ -660,7 +698,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-            
+
             #ifdef DAEMON
             smc_close();
             daemonize();
@@ -671,7 +709,8 @@ int main(int argc, char *argv[])
             double CPUTempHistory[CPU_TEMP_LOG_DURATION] = {0};
 
             double CPUTemperatureNow = ReadMaxCPUTemperature();
-            for(size_t i = 0; i < CPU_TEMP_LOG_DURATION; i++)
+
+            for (size_t i = 0; i < CPU_TEMP_LOG_DURATION; i++)
             {
                 CPUTempHistory[i] = CPUTemperatureNow;
             }
@@ -714,6 +753,142 @@ int main(int argc, char *argv[])
 
         }
     }
+    else if (!strcmp(argv[1], "--SMC-enhanced"))
+    {
+        if (argc != 2)
+        {
+            puts("Incorrect parameters.");
+            puts("Use option \"-h\" for help.");
+            // printUsage();
+            exit_failure();
+        }
+        else
+        {
+
+            #ifdef DAEMON
+            smc_close();
+            daemonize();
+            smc_init();
+            #endif
+            const double fan0MinSpeed = getFloatFromKey("F0Mn");
+            const size_t CPU_TEMP_LOG_DURATION = 90;
+            size_t idxCPUTempHistory = 0;
+            double CPUTempHistory[CPU_TEMP_LOG_DURATION] = {0.0};
+            bool areFansOn = true;
+
+            double CPUTemperatureNow = ReadMaxCPUTemperature();
+
+            for (size_t i = 0; i < CPU_TEMP_LOG_DURATION; i++)
+            {
+                CPUTempHistory[i] = CPUTemperatureNow;
+            }
+
+
+            for (;;)
+            {
+                if (idxCPUTempHistory >= CPU_TEMP_LOG_DURATION)
+                {
+                    idxCPUTempHistory = 0;
+                }
+
+                CPUTempHistory[idxCPUTempHistory] = ReadMaxCPUTemperature();
+                #ifdef DEBUG
+                printf("cur: %.1f | ", CPUTempHistory[idxCPUTempHistory]);
+                #endif
+                idxCPUTempHistory++;
+
+                double sumCPUTempHistory = 0.0;
+                double fan0TargetSpeed = 0.0;
+                bool isFan0LowRPM = true;
+
+                if (getFloatFromKey("F0Ac") > fan0MinSpeed + 40)
+                {
+                    isFan0LowRPM = false;
+                }
+
+                for (size_t i = 0; i < CPU_TEMP_LOG_DURATION; i++)
+                {
+                    sumCPUTempHistory += CPUTempHistory[i];
+                }
+
+                double avgCPUTemp = sumCPUTempHistory / (double)CPU_TEMP_LOG_DURATION;
+                #ifdef DEBUG
+                printf("avg: %.2f | ", avgCPUTemp);
+                printf("isfan0Low: %d | ", isFan0LowRPM);
+                #endif
+
+                if (isFan0LowRPM && avgCPUTemp < 62)
+                {
+                    if (areFansOn)
+                    {
+                        if (avgCPUTemp > 58)
+                        {
+                            fan0TargetSpeed = 169.5625 * avgCPUTemp - 8352.875;
+                        }
+                        else if (avgCPUTemp < 54)
+                        {
+                            fan0TargetSpeed = 0.0;
+                        }
+                        else
+                        {
+                            fan0TargetSpeed = 1481.75;
+                        }
+                    }
+                    else
+                    {
+                        if (avgCPUTemp > 58)
+                        {
+                            fan0TargetSpeed = 169.5625 * avgCPUTemp - 8352.875;
+                        }
+                        else
+                        {
+                            fan0TargetSpeed = 0;
+                        }
+                    }
+
+                    #ifdef DEBUG
+                    printf("fan0Tg: %.0f | ", fan0TargetSpeed);
+                    #endif
+
+                    setFanSpeed(0, fan0TargetSpeed);
+                    setFanSpeed(1, fan0TargetSpeed * 5489.0 / 5927.0);
+
+                    if (fan0TargetSpeed < 10)
+                    {
+                        areFansOn = false;
+                    }
+                    else
+                    {
+                        areFansOn = true;
+                    }
+                }
+                else
+                {
+                    if (getFloatFromKey("F0Md"))
+                    {
+                        // if fans are currently forced, set them to auto
+                        writeValue("F0Md", "00");
+                        writeValue("F1Md", "00");
+                        areFansOn = true;
+                        #ifdef DEBUG
+                        printf("hasSetToAuto");
+                        #endif
+                    }
+                }
+
+
+
+                #ifdef DEBUG
+                printf("\n");
+                fflush(stdout);
+                #endif
+
+                sleep(1);
+            }
+
+
+        }
+    }
     else if (!strcmp(argv[1], "-h"))
     {
         if (argc != 2)
@@ -741,7 +916,6 @@ int main(int argc, char *argv[])
     smc_close();
     return EXIT_SUCCESS;
 }
-#pragma clang diagnostic pop
 
 //TODO:
 //encapculate into classes
