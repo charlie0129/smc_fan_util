@@ -8,11 +8,12 @@ DESCRIPTION:
     Note: This utility only applies to Intel Macs with 2 fans.
     !!!You should execute this utility with root privileges!!!
 SYNOPSIS:
-    sfc_manual [-a] | [-A] | [-d] | [-h] | [-i] |
+    sfc_manual [-a] | [-A] | [--SMC-enhanced] | [-d] | [-h] | [-i]
                [-m speed_percentage] | [-m speed_left speed_right]
 OPTIONS:
-    -a: set fans to auto mode (controlled by SMC).
-    -A: set fans to auto mode (controlled by this program).
+    -a: Auto mode (controlled by SMC).
+    -A: Auto mode (controlled by this program).
+    --SMC-enhanced: Auto mode (an enhanced fan curve using SMC).
     -d: turn off fans completely.
         Note: This could easily cause your machine to overheat!!!
     -h: display this message.
