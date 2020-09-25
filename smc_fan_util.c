@@ -10,7 +10,7 @@
 #include "smc.h"
 
 #ifndef DEBUG
-#define DAEMON
+    #define DAEMON
 #endif
 
 // TODO:
@@ -279,6 +279,7 @@ int writeValue(char *key, char *in_value)
         printf("Error: specify a key to write\n");
         return 1;
     }
+
     return 0;
 }
 
@@ -402,30 +403,30 @@ void SetFanSpeedByPercentage(double percentage)
 void printUsage()
 {
     fprintf(stderr,
-    "DESCRIPTION:\n"
-    "    This utility enables you to control your Mac's fans manually.\n"
-    "    Note: This utility only applies to Intel Macs with 2 fans.\n"
-    "    !!!You should execute this utility with root privileges!!!\n"
-    "SYNOPSIS:\n"
-    "    sfc_manual [-a] | [-A] | [--SMC-enhanced] | [-d] | [-h] | [-i]\n"
-    "               [-m speed_percentage] | [-m speed_left speed_right]\n"
-    "OPTIONS:\n"
-    "    -a: Auto mode (controlled by SMC).\n"
-    "    -A: Auto mode (controlled by this program)\n"
-    "    --SMC-enhanced: Auto mode (an enhanced fan curve using SMC).\n"
-    "    -d: turn off fans completely.\n"
-    "        Note: This could easily cause your machine to overheat!!!\n"
-    "    -h: display this message.\n"
-    "    -i: show fan information.\n"
-    "    -m <percentage>: set fan speeds to a specific percentage manually.\n"
-    "    -m <speed_left> <speed_right>: set fan speeds to specific speeds manually.\n"
-    "        Note: If you set fan speeds by RPM, it ignores Apple's limits.\n"
-    "              You can \"overclock\" or \"underclock\" your fans,\n"
-    "              but ridiculous values may damage you machine!!!\n"
-    "EXAMPLES:\n"
-    "    sfc_manual -m 50        // set both fans to 50 percent\n"
-    "    sfc_manual -m 1080 1000 // left: 1080rpm; right: 1000rpm\n"
-    "    sfc_manual -a           // set fans to auto mode (SMC)\n");
+            "DESCRIPTION:\n"
+            "    This utility enables you to control your Mac's fans manually.\n"
+            "    Note: This utility only applies to Intel Macs with 2 fans.\n"
+            "    !!!You should execute this utility with root privileges!!!\n"
+            "SYNOPSIS:\n"
+            "    sfc_manual [-a] | [-A] | [--SMC-enhanced] | [-d] | [-h] | [-i]\n"
+            "               [-m speed_percentage] | [-m speed_left speed_right]\n"
+            "OPTIONS:\n"
+            "    -a: Auto mode (controlled by SMC).\n"
+            "    -A: Auto mode (controlled by this program)\n"
+            "    --SMC-enhanced: Auto mode (an enhanced fan curve using SMC).\n"
+            "    -d: turn off fans completely.\n"
+            "        Note: This could easily cause your machine to overheat!!!\n"
+            "    -h: display this message.\n"
+            "    -i: show fan information.\n"
+            "    -m <percentage>: set fan speeds to a specific percentage manually.\n"
+            "    -m <speed_left> <speed_right>: set fan speeds to specific speeds manually.\n"
+            "        Note: If you set fan speeds by RPM, it ignores Apple's limits.\n"
+            "              You can \"overclock\" or \"underclock\" your fans,\n"
+            "              but ridiculous values may damage you machine!!!\n"
+            "EXAMPLES:\n"
+            "    sfc_manual -m 50        // set both fans to 50 percent\n"
+            "    sfc_manual -m 1080 1000 // left: 1080rpm; right: 1000rpm\n"
+            "    sfc_manual -a           // set fans to auto mode (SMC)\n");
 }
 
 void setFanSpeedAccordingToTemperature(double temperature)
@@ -832,6 +833,17 @@ int main(int argc, char *argv[])
 
                 if (isFan0LowRPM && avgCPUTemp < 62)
                 {
+                    // if fans are previously auto,
+                    // make it smooth when switching from auto to forced mode.
+                    if (!getFloatFromKey("F0Md"))
+                    {
+                        for (size_t i = 0; i < CPU_TEMP_LOG_DURATION; i++)
+                        {
+                            CPUTempHistory[i] = 61.99;
+                        }
+                        avgCPUTemp = 61.99;
+                    }
+
                     if (areFansOn)
                     {
                         if (avgCPUTemp > 57.30091)
