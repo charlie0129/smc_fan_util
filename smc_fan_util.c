@@ -9,6 +9,10 @@
 #include <IOKit/IOKitLib.h>
 #include "smc.h"
 
+#ifndef DEBUG
+#define DAEMON
+#endif
+
 // TODO:
 // apply to macs with different numbers of fans
 // improve augument parser
@@ -100,7 +104,10 @@ float getFloatFromKey(const char *key)
     kern_return_t result;
     SMCVal_t val;
 
-    result = SMCReadKey(key, &val);
+    char key_[5] = {'\0'};
+    snprintf(key_, 5, "%s", key);
+
+    result = SMCReadKey(key_, &val);
 
     if (result != kIOReturnSuccess)
     {
@@ -264,12 +271,15 @@ int writeValue(char *key, char *in_value)
         if (result != kIOReturnSuccess)
         {
             printf("Error: SMCWriteKey() = %08x\n", result);
+            return 1;
         }
     }
     else
     {
         printf("Error: specify a key to write\n");
+        return 1;
     }
+    return 0;
 }
 
 void setFanSpeed(int fanIndex, double targetSpeed)
@@ -391,30 +401,31 @@ void SetFanSpeedByPercentage(double percentage)
 // sudo ./smc 61 10 30 2  66 30 60 4  71 60 95 6  74 16
 void printUsage()
 {
-    puts("DESCRIPTION:");
-    puts("    This utility enables you to control your Mac's fans manually.");
-    puts("    Note: This utility only applies to Intel Macs with 2 fans.");
-    puts("    !!!You should execute this utility with root privileges!!!");
-    puts("SYNOPSIS:");
-    puts("    sfc_manual [-a] | [-A] | [--SMC-enhanced] | [-d] | [-h] | [-i]");
-    puts("               [-m speed_percentage] | [-m speed_left speed_right]");
-    puts("OPTIONS:");
-    puts("    -a: Auto mode (controlled by SMC).");
-    puts("    -A: Auto mode (controlled by this program).");
-    puts("    --SMC-enhanced: Auto mode (an enhanced fan curve using SMC).");
-    puts("    -d: turn off fans completely.");
-    puts("        Note: This could easily cause your machine to overheat!!!");
-    puts("    -h: display this message.");
-    puts("    -i: show fan information.");
-    puts("    -m <percentage>: set fan speeds to a specific percentage manually.");
-    puts("    -m <speed_left> <speed_right>: set fan speeds to specific speeds manually.");
-    puts("        Note: If you set fan speeds by RPM, it ignores Apple's limits.");
-    puts("              You can \"overclock\" or \"underclock\" your fans,");
-    puts("              but ridiculous values may damage you machine!!!");
-    puts("EXAMPLES:");
-    puts("    sfc_manual -m 50        // set both fans to 50 percent");
-    puts("    sfc_manual -m 1080 1000 // left: 1080rpm; right: 1000rpm");
-    puts("    sfc_manual -a           // set fans to auto mode (SMC)");
+    fprintf(stderr,
+    "DESCRIPTION:\n"
+    "    This utility enables you to control your Mac's fans manually.\n"
+    "    Note: This utility only applies to Intel Macs with 2 fans.\n"
+    "    !!!You should execute this utility with root privileges!!!\n"
+    "SYNOPSIS:\n"
+    "    sfc_manual [-a] | [-A] | [--SMC-enhanced] | [-d] | [-h] | [-i]\n"
+    "               [-m speed_percentage] | [-m speed_left speed_right]\n"
+    "OPTIONS:\n"
+    "    -a: Auto mode (controlled by SMC).\n"
+    "    -A: Auto mode (controlled by this program)\n"
+    "    --SMC-enhanced: Auto mode (an enhanced fan curve using SMC).\n"
+    "    -d: turn off fans completely.\n"
+    "        Note: This could easily cause your machine to overheat!!!\n"
+    "    -h: display this message.\n"
+    "    -i: show fan information.\n"
+    "    -m <percentage>: set fan speeds to a specific percentage manually.\n"
+    "    -m <speed_left> <speed_right>: set fan speeds to specific speeds manually.\n"
+    "        Note: If you set fan speeds by RPM, it ignores Apple's limits.\n"
+    "              You can \"overclock\" or \"underclock\" your fans,\n"
+    "              but ridiculous values may damage you machine!!!\n"
+    "EXAMPLES:\n"
+    "    sfc_manual -m 50        // set both fans to 50 percent\n"
+    "    sfc_manual -m 1080 1000 // left: 1080rpm; right: 1000rpm\n"
+    "    sfc_manual -a           // set fans to auto mode (SMC)\n");
 }
 
 void setFanSpeedAccordingToTemperature(double temperature)
@@ -708,6 +719,7 @@ int main(int argc, char *argv[])
             size_t idxCPUTempHistory = 0;
             double CPUTempHistory[CPU_TEMP_LOG_DURATION] = {0};
 
+            sleep(1);
             double CPUTemperatureNow = ReadMaxCPUTemperature();
 
             for (size_t i = 0; i < CPU_TEMP_LOG_DURATION; i++)
@@ -776,6 +788,7 @@ int main(int argc, char *argv[])
             double CPUTempHistory[CPU_TEMP_LOG_DURATION] = {0.0};
             bool areFansOn = true;
 
+            sleep(1);
             double CPUTemperatureNow = ReadMaxCPUTemperature();
 
             for (size_t i = 0; i < CPU_TEMP_LOG_DURATION; i++)
@@ -821,7 +834,7 @@ int main(int argc, char *argv[])
                 {
                     if (areFansOn)
                     {
-                        if (avgCPUTemp > 58)
+                        if (avgCPUTemp > 57.30091)
                         {
                             fan0TargetSpeed = 169.5625 * avgCPUTemp - 8352.875;
                         }
@@ -831,12 +844,12 @@ int main(int argc, char *argv[])
                         }
                         else
                         {
-                            fan0TargetSpeed = 1481.75;
+                            fan0TargetSpeed = 1363.21;
                         }
                     }
                     else
                     {
-                        if (avgCPUTemp > 58)
+                        if (avgCPUTemp > 57.30091)
                         {
                             fan0TargetSpeed = 169.5625 * avgCPUTemp - 8352.875;
                         }
