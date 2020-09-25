@@ -719,7 +719,7 @@ int main(int argc, char *argv[])
             size_t idxCPUTempHistory = 0;
             double CPUTempHistory[CPU_TEMP_LOG_DURATION] = {0};
 
-            sleep(1);
+            sleep(2);
             double CPUTemperatureNow = ReadMaxCPUTemperature();
 
             for (size_t i = 0; i < CPU_TEMP_LOG_DURATION; i++)
@@ -788,7 +788,7 @@ int main(int argc, char *argv[])
             double CPUTempHistory[CPU_TEMP_LOG_DURATION] = {0.0};
             bool areFansOn = true;
 
-            sleep(1);
+            sleep(2);
             double CPUTemperatureNow = ReadMaxCPUTemperature();
 
             for (size_t i = 0; i < CPU_TEMP_LOG_DURATION; i++)
