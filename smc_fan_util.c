@@ -415,7 +415,7 @@ void printUsage()
             "    -A: Auto mode (controlled by this program)\n"
             "    --SMC-enhanced: Auto mode (an enhanced fan curve using SMC).\n"
             "    -d: turn off fans completely.\n"
-            "        Note: This could easily cause your machine to overheat!!!\n"
+            "        Note: Be sure to monitor temperatures to avoid overheat!!!\n"
             "    -h: display this message.\n"
             "    -i: show fan information.\n"
             "    -m <percentage>: set fan speeds to a specific percentage manually.\n"

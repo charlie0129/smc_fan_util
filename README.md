@@ -15,7 +15,7 @@ OPTIONS:
     -A: Auto mode (controlled by this program).
     --SMC-enhanced: Auto mode (an enhanced fan curve using SMC).
     -d: turn off fans completely.
-        Note: This could easily cause your machine to overheat!!!
+        Note: Be sure to monitor temperatures to avoid overheat!!!
     -h: display this message.
     -i: show fan information.
     -m <percentage>: set fan speeds to a specific percentage manually.
