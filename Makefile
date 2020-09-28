@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -O3 -Wall
 LDFLAGS = -framework IOKit
-MACROS = # -DDEBUG
+MACROS =  -DDEBUG
 
 all: build build/smc_fan_util
 

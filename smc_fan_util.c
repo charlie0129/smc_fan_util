@@ -800,6 +800,8 @@ int main(int argc, char *argv[])
 
             for (;;)
             {
+                sleep(1);
+
                 if (idxCPUTempHistory >= CPU_TEMP_LOG_DURATION)
                 {
                     idxCPUTempHistory = 0;
@@ -831,7 +833,10 @@ int main(int argc, char *argv[])
                 printf("isfan0Low: %d | ", isFan0LowRPM);
                 #endif
 
-                if (isFan0LowRPM && avgCPUTemp < 62)
+                if (isFan0LowRPM 
+                && avgCPUTemp < 62 
+                && getFloatFromKey("TB0T") < 41  // battery
+                && getFloatFromKey("TTLD") < 70) // thunderbolt
                 {
                     // if fans are previously auto,
                     // make it smooth when switching from auto to forced mode.
@@ -907,8 +912,6 @@ int main(int argc, char *argv[])
                 printf("\n");
                 fflush(stdout);
                 #endif
-
-                sleep(1);
             }
 
 
