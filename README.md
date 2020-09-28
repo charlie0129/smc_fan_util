@@ -13,7 +13,7 @@ SYNOPSIS:
 OPTIONS:
     -a: Auto mode (controlled by SMC).
     -A: Auto mode (controlled by this program).
-    --SMC-enhanced: Auto mode (an enhanced fan curve using SMC).
+    --SMC-enhanced: Auto mode (enabled fan-auto-stop feature while using native smc fan curves, recommended).
     -d: turn off fans completely.
         Note: Be sure to monitor temperatures to avoid overheat!!!
     -h: display this message.

@@ -413,7 +413,7 @@ void printUsage()
             "OPTIONS:\n"
             "    -a: Auto mode (controlled by SMC).\n"
             "    -A: Auto mode (controlled by this program)\n"
-            "    --SMC-enhanced: Auto mode (an enhanced fan curve using SMC).\n"
+            "    --SMC-enhanced: Auto mode (enabled fan-auto-stop feature while using native smc fan curves, recommended).\n"
             "    -d: turn off fans completely.\n"
             "        Note: Be sure to monitor temperatures to avoid overheat!!!\n"
             "    -h: display this message.\n"
