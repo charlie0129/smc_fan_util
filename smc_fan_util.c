@@ -785,8 +785,11 @@ int main(int argc, char *argv[])
             #endif
             const double fan0MinSpeed = getFloatFromKey("F0Mn");
             const size_t CPU_TEMP_LOG_DURATION = 90;
+            const size_t FAN_SPEED_LOG_DURATION = 20;
             size_t idxCPUTempHistory = 0;
+            size_t idxFanSpeedHistory = 0;
             double CPUTempHistory[CPU_TEMP_LOG_DURATION] = {0.0};
+            double fanSpeedHistory[FAN_SPEED_LOG_DURATION] = {0.0};
             bool areFansOn = true;
 
             sleep(2);
@@ -795,6 +798,13 @@ int main(int argc, char *argv[])
             for (size_t i = 0; i < CPU_TEMP_LOG_DURATION; i++)
             {
                 CPUTempHistory[i] = CPUTemperatureNow;
+            }
+
+            double fanSpeedNow = getFloatFromKey("F0Ac");
+
+            for (size_t i = 0; i < FAN_SPEED_LOG_DURATION; i++)
+            {
+                fanSpeedHistory[i] = fanSpeedNow;
             }
 
 
@@ -807,19 +817,29 @@ int main(int argc, char *argv[])
                     idxCPUTempHistory = 0;
                 }
 
+                if (idxFanSpeedHistory >= FAN_SPEED_LOG_DURATION)
+                {
+                    idxFanSpeedHistory = 0;
+                }
+
                 CPUTempHistory[idxCPUTempHistory] = ReadMaxCPUTemperature();
+                fanSpeedHistory[idxFanSpeedHistory] = getFloatFromKey("F0Ac");
                 #ifdef DEBUG
                 printf("cur: %.1f | ", CPUTempHistory[idxCPUTempHistory]);
                 #endif
                 idxCPUTempHistory++;
+                idxFanSpeedHistory++;
 
                 double sumCPUTempHistory = 0.0;
                 double fan0TargetSpeed = 0.0;
                 bool isFan0LowRPM = true;
 
-                if (getFloatFromKey("F0Ac") > fan0MinSpeed + 40)
+                for (size_t i = 0; i < FAN_SPEED_LOG_DURATION; i++)
                 {
-                    isFan0LowRPM = false;
+                    if (fanSpeedHistory[i] > fan0MinSpeed + 40)
+                    {
+                        isFan0LowRPM = false;
+                    }
                 }
 
                 for (size_t i = 0; i < CPU_TEMP_LOG_DURATION; i++)
@@ -828,15 +848,16 @@ int main(int argc, char *argv[])
                 }
 
                 double avgCPUTemp = sumCPUTempHistory / (double)CPU_TEMP_LOG_DURATION;
+
                 #ifdef DEBUG
                 printf("avg: %.2f | ", avgCPUTemp);
                 printf("isfan0Low: %d | ", isFan0LowRPM);
                 #endif
 
-                if (isFan0LowRPM 
-                && avgCPUTemp < 62 
-                && getFloatFromKey("TB0T") < 41  // battery
-                && getFloatFromKey("TTLD") < 70) // thunderbolt
+                if (isFan0LowRPM
+                    && avgCPUTemp < 62
+                    && getFloatFromKey("TB0T") < 41  // battery
+                    && getFloatFromKey("TTLD") < 70) // thunderbolt
                 {
                     // if fans are previously auto,
                     // make it smooth when switching from auto to forced mode.
@@ -846,6 +867,7 @@ int main(int argc, char *argv[])
                         {
                             CPUTempHistory[i] = 61.99;
                         }
+
                         avgCPUTemp = 61.99;
                     }
 
