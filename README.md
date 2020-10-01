@@ -1,6 +1,11 @@
 # smc_fan_util
 
-A small utility to control your MacBook's fans with a built-in fan curve optimized for smooth fan speed shifts.
+A small utility to control your MacBook's fans.  
+(currently only applies to MacBooks with two fans and four Thunderbolts.)
+
+- Auto-fan-stop.
+- Custom or SMC-defined fan curve.
+- Manually control fan speeds.
 
 ```
 DESCRIPTION:
