@@ -121,18 +121,27 @@ float getFloatFromKey(const char *key)
         if (strcmp(val.dataType, DATATYPE_FLT) == 0 && val.dataSize == 4)
         {
             memcpy(&fval, val.bytes, sizeof(float));
+            return fval;
         }
         else if (strcmp(val.dataType, DATATYPE_FPE2) == 0 && val.dataSize == 2)
         {
             fval = _strtof(val.bytes, val.dataSize, 2);
+            return fval;
         }
         else if (strcmp(val.dataType, DATATYPE_UINT16) == 0 && val.dataSize == 2)
         {
             fval = (float) _strtoul((char *) val.bytes, val.dataSize, 10);
+            return fval;
         }
         else if (strcmp(val.dataType, DATATYPE_UINT8) == 0 && val.dataSize == 1)
         {
             fval = (float) _strtoul((char *) val.bytes, val.dataSize, 10);
+            return fval;
+        }
+        else if (strcmp(val.dataType, DATATYPE_SP78) == 0 && val.dataSize == 2)
+        {
+            fval = ((SInt16)ntohs(*(UInt16*)val.bytes)) / 256.0;
+            return fval;
         }
     }
 
@@ -854,12 +863,15 @@ int main(int argc, char *argv[])
                 printf("isfan0Low: %d | ", isFan0LowRPM);
                 #endif
 
+                double THUNDERBOLT_TEMPERATURE_LIMIT = 68;
+
                 if (isFan0LowRPM
                     && avgCPUTemp < 62
                     && getFloatFromKey("TB0T") <= 40  // battery
-                    && getFloatFromKey("TTLD") <= 68  // thunderbolt left
-                    && getFloatFromKey("TTRD") <= 68) // thunderbolt right
+                    && getFloatFromKey("TTLD") <= THUNDERBOLT_TEMPERATURE_LIMIT  // thunderbolt left
+                    && getFloatFromKey("TTRD") <= THUNDERBOLT_TEMPERATURE_LIMIT) // thunderbolt right
                 {
+                    THUNDERBOLT_TEMPERATURE_LIMIT = 68;
                     // if fans are previously auto,
                     // make it smooth when switching from auto to forced mode.
                     if (!getFloatFromKey("F0Md"))
@@ -921,6 +933,7 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
+                    THUNDERBOLT_TEMPERATURE_LIMIT = 67;
                     if (getFloatFromKey("F0Md"))
                     {
                         // if fans are currently forced, set them to auto
