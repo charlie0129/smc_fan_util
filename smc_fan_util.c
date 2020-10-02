@@ -408,7 +408,7 @@ void printUsage()
             "    Note: This utility only applies to Intel Macs with 2 fans.\n"
             "    !!!You should execute this utility with root privileges!!!\n"
             "SYNOPSIS:\n"
-            "    sfc_manual [-a] | [-A] | [--SMC-enhanced] | [-d] | [-h] | [-i]\n"
+            "    smc_fan_util [-a] | [-A] | [--SMC-enhanced] | [-d] | [-h] | [-i]\n"
             "               [-m speed_percentage] | [-m speed_left speed_right]\n"
             "OPTIONS:\n"
             "    -a: Auto mode (controlled by SMC).\n"
@@ -424,9 +424,9 @@ void printUsage()
             "              You can \"overclock\" or \"underclock\" your fans,\n"
             "              but ridiculous values may damage you machine!!!\n"
             "EXAMPLES:\n"
-            "    sfc_manual -m 50        // set both fans to 50 percent\n"
-            "    sfc_manual -m 1080 1000 // left: 1080rpm; right: 1000rpm\n"
-            "    sfc_manual -a           // set fans to auto mode (SMC)\n");
+            "    smc_fan_util -m 50        // set both fans to 50 percent\n"
+            "    smc_fan_util -m 1080 1000 // left: 1080rpm; right: 1000rpm\n"
+            "    smc_fan_util -a           // set fans to auto mode (SMC)\n");
 }
 
 void setFanSpeedAccordingToTemperature(double temperature)

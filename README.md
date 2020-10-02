@@ -13,7 +13,7 @@ DESCRIPTION:
     Note: This utility only applies to Intel Macs with 2 fans.
     !!!You should execute this utility with root privileges!!!
 SYNOPSIS:
-    sfc_manual [-a] | [-A] | [--SMC-enhanced] | [-d] | [-h] | [-i]
+    smc_fan_util [-a] | [-A] | [--SMC-enhanced] | [-d] | [-h] | [-i]
                [-m speed_percentage] | [-m speed_left speed_right]
 OPTIONS:
     -a: Auto mode (controlled by SMC).
@@ -29,7 +29,7 @@ OPTIONS:
               You can "overclock" or "underclock" your fans,
               but ridiculous values may damage you machine!!!
 EXAMPLES:
-    sfc_manual -m 50        // set both fans to 50 percent
-    sfc_manual -m 1080 1000 // left: 1080rpm; right: 1000rpm
-    sfc_manual -a           // set fans to auto mode (SMC)
+    smc_fan_util -m 50        // set both fans to 50 percent
+    smc_fan_util -m 1080 1000 // left: 1080rpm; right: 1000rpm
+    smc_fan_util -a           // set fans to auto mode (SMC)
 ```
