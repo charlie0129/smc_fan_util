@@ -799,7 +799,6 @@ int main(int argc, char *argv[])
             size_t idxFanSpeedHistory = 0;
             double CPUTempHistory[CPU_TEMP_LOG_DURATION] = {0.0};
             double fanSpeedHistory[FAN_SPEED_LOG_DURATION] = {0.0};
-
             double THUNDERBOLT_TEMPERATURE_LIMIT = 68;
             double BATTERY_TEMPERATURE_LIMIT = 40.2;
             bool areFansOn = true;
@@ -867,7 +866,7 @@ int main(int argc, char *argv[])
                 #endif
 
                 if (isFan0LowRPM
-                    && avgCPUTemp < 62
+                    && avgCPUTemp < 61.0
                     && getFloatFromKey("TB0T") <= BATTERY_TEMPERATURE_LIMIT  // battery
                     && getFloatFromKey("TTLD") <= THUNDERBOLT_TEMPERATURE_LIMIT  // thunderbolt left
                     && getFloatFromKey("TTRD") <= THUNDERBOLT_TEMPERATURE_LIMIT) // thunderbolt right
@@ -881,17 +880,17 @@ int main(int argc, char *argv[])
                     {
                         for (size_t i = 0; i < CPU_TEMP_LOG_DURATION; i++)
                         {
-                            CPUTempHistory[i] = 61.99;
+                            CPUTempHistory[i] = 60.99;
                         }
 
-                        avgCPUTemp = 61.99;
+                        avgCPUTemp = 60.99;
                     }
 
                     if (areFansOn)
                     {
-                        if (avgCPUTemp > 57.30091)
+                        if (avgCPUTemp > 55.0)
                         {
-                            fan0TargetSpeed = 169.5625 * avgCPUTemp - 8352.875;
+                            fan0TargetSpeed = 132.798333 * avgCPUTemp - 5940.698333;
                         }
                         else if (avgCPUTemp < 54)
                         {
@@ -904,9 +903,9 @@ int main(int argc, char *argv[])
                     }
                     else
                     {
-                        if (avgCPUTemp > 57.30091)
+                        if (avgCPUTemp > 55.0)
                         {
-                            fan0TargetSpeed = 169.5625 * avgCPUTemp - 8352.875;
+                            fan0TargetSpeed = 132.798333 * avgCPUTemp - 5940.698333;
                         }
                         else
                         {
@@ -936,7 +935,7 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    THUNDERBOLT_TEMPERATURE_LIMIT = 66.7;
+                    THUNDERBOLT_TEMPERATURE_LIMIT = 66.8;
                     BATTERY_TEMPERATURE_LIMIT = 39.5;
 
                     if (getFloatFromKey("F0Md"))
