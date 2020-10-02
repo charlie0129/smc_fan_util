@@ -857,7 +857,8 @@ int main(int argc, char *argv[])
                 if (isFan0LowRPM
                     && avgCPUTemp < 62
                     && getFloatFromKey("TB0T") <= 40  // battery
-                    && getFloatFromKey("TTLD") <= 68) // thunderbolt
+                    && getFloatFromKey("TTLD") <= 68  // thunderbolt left
+                    && getFloatFromKey("TTRD") <= 68) // thunderbolt right
                 {
                     // if fans are previously auto,
                     // make it smooth when switching from auto to forced mode.
@@ -903,7 +904,7 @@ int main(int argc, char *argv[])
                     #endif
 
                     // if fans are off and will be turned off, then no action is taken.
-                    if (!((!areFansOn) && (fabs(fan0TargetSpeed) < 1))) 
+                    if (!((!areFansOn) && (fabs(fan0TargetSpeed) < 1)))
                     {
                         setFanSpeed(0, fan0TargetSpeed);
                         setFanSpeed(1, fan0TargetSpeed * 5489.0 / 5927.0);
