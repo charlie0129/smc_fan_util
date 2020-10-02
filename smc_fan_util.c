@@ -862,16 +862,18 @@ int main(int argc, char *argv[])
                 printf("avg: %.2f | ", avgCPUTemp);
                 printf("isfan0Low: %d | ", isFan0LowRPM);
                 #endif
-
+                
                 double THUNDERBOLT_TEMPERATURE_LIMIT = 68;
+                double BATTERY_TEMPERATURE_LIMIT = 40.2;
 
                 if (isFan0LowRPM
                     && avgCPUTemp < 62
-                    && getFloatFromKey("TB0T") <= 40  // battery
+                    && getFloatFromKey("TB0T") <= BATTERY_TEMPERATURE_LIMIT  // battery
                     && getFloatFromKey("TTLD") <= THUNDERBOLT_TEMPERATURE_LIMIT  // thunderbolt left
                     && getFloatFromKey("TTRD") <= THUNDERBOLT_TEMPERATURE_LIMIT) // thunderbolt right
                 {
                     THUNDERBOLT_TEMPERATURE_LIMIT = 68;
+                    BATTERY_TEMPERATURE_LIMIT = 40.2;
                     // if fans are previously auto,
                     // make it smooth when switching from auto to forced mode.
                     if (!getFloatFromKey("F0Md"))
@@ -933,7 +935,8 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    THUNDERBOLT_TEMPERATURE_LIMIT = 67;
+                    THUNDERBOLT_TEMPERATURE_LIMIT = 66.7;
+                    BATTERY_TEMPERATURE_LIMIT = 39.5;
                     if (getFloatFromKey("F0Md"))
                     {
                         // if fans are currently forced, set them to auto
