@@ -902,7 +902,7 @@ int main(int argc, char *argv[])
                     printf("fan0Tg: %.0f | ", fan0TargetSpeed);
                     #endif
 
-                    if (!(!areFansOn) && (fabs(fan0TargetSpeed) < 1)) // fans are off and will be turned off
+                    if (!((!areFansOn) && (fabs(fan0TargetSpeed) < 1))) // fans are off and will be turned off
                     {
                         setFanSpeed(0, fan0TargetSpeed);
                         setFanSpeed(1, fan0TargetSpeed * 5489.0 / 5927.0);
