@@ -140,7 +140,7 @@ float getFloatFromKey(const char *key)
         }
         else if (strcmp(val.dataType, DATATYPE_SP78) == 0 && val.dataSize == 2)
         {
-            fval = ((SInt16)ntohs(*(UInt16*)val.bytes)) / 256.0;
+            fval = ((SInt16)ntohs(*(UInt16 *)val.bytes)) / 256.0;
             return fval;
         }
     }
@@ -799,6 +799,9 @@ int main(int argc, char *argv[])
             size_t idxFanSpeedHistory = 0;
             double CPUTempHistory[CPU_TEMP_LOG_DURATION] = {0.0};
             double fanSpeedHistory[FAN_SPEED_LOG_DURATION] = {0.0};
+
+            double THUNDERBOLT_TEMPERATURE_LIMIT = 68;
+            double BATTERY_TEMPERATURE_LIMIT = 40.2;
             bool areFansOn = true;
 
             sleep(2);
@@ -862,9 +865,6 @@ int main(int argc, char *argv[])
                 printf("avg: %.2f | ", avgCPUTemp);
                 printf("isfan0Low: %d | ", isFan0LowRPM);
                 #endif
-                
-                double THUNDERBOLT_TEMPERATURE_LIMIT = 68;
-                double BATTERY_TEMPERATURE_LIMIT = 40.2;
 
                 if (isFan0LowRPM
                     && avgCPUTemp < 62
@@ -874,6 +874,7 @@ int main(int argc, char *argv[])
                 {
                     THUNDERBOLT_TEMPERATURE_LIMIT = 68;
                     BATTERY_TEMPERATURE_LIMIT = 40.2;
+
                     // if fans are previously auto,
                     // make it smooth when switching from auto to forced mode.
                     if (!getFloatFromKey("F0Md"))
@@ -937,6 +938,7 @@ int main(int argc, char *argv[])
                 {
                     THUNDERBOLT_TEMPERATURE_LIMIT = 66.7;
                     BATTERY_TEMPERATURE_LIMIT = 39.5;
+
                     if (getFloatFromKey("F0Md"))
                     {
                         // if fans are currently forced, set them to auto
