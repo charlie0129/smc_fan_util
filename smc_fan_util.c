@@ -856,8 +856,8 @@ int main(int argc, char *argv[])
 
                 if (isFan0LowRPM
                     && avgCPUTemp < 62
-                    && getFloatFromKey("TB0T") < 41  // battery
-                    && getFloatFromKey("TTLD") < 70) // thunderbolt
+                    && getFloatFromKey("TB0T") <= 40  // battery
+                    && getFloatFromKey("TTLD") <= 68) // thunderbolt
                 {
                     // if fans are previously auto,
                     // make it smooth when switching from auto to forced mode.
