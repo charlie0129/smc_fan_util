@@ -800,7 +800,7 @@ int main(int argc, char *argv[])
             double CPUTempHistory[CPU_TEMP_LOG_DURATION] = {0.0};
             double fanSpeedHistory[FAN_SPEED_LOG_DURATION] = {0.0};
             double THUNDERBOLT_TEMPERATURE_LIMIT = 68;
-            double BATTERY_TEMPERATURE_LIMIT = 40.2;
+            double BATTERY_TEMPERATURE_LIMIT = 40.1;
             bool areFansOn = true;
 
             sleep(2);
@@ -872,7 +872,7 @@ int main(int argc, char *argv[])
                     && getFloatFromKey("TTRD") <= THUNDERBOLT_TEMPERATURE_LIMIT) // thunderbolt right
                 {
                     THUNDERBOLT_TEMPERATURE_LIMIT = 68;
-                    BATTERY_TEMPERATURE_LIMIT = 40.2;
+                    BATTERY_TEMPERATURE_LIMIT = 40.1;
 
                     // if fans are previously auto,
                     // make it smooth when switching from auto to forced mode.
