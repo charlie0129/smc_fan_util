@@ -794,7 +794,7 @@ int main(int argc, char *argv[])
             #endif
             const double fan0MinSpeed = getFloatFromKey("F0Mn");
             const size_t CPU_TEMP_LOG_DURATION = 90;
-            const size_t FAN_SPEED_LOG_DURATION = 20;
+            const size_t FAN_SPEED_LOG_DURATION = 30;
             size_t idxCPUTempHistory = 0;
             size_t idxFanSpeedHistory = 0;
             double CPUTempHistory[CPU_TEMP_LOG_DURATION] = {0.0};
