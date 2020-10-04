@@ -903,7 +903,7 @@ int main(int argc, char *argv[])
                     }
                     else
                     {
-                        if (avgCPUTemp > 55.0)
+                        if (avgCPUTemp > 57.0)
                         {
                             fan0TargetSpeed = 132.798333 * avgCPUTemp - 5940.698333;
                         }
