@@ -1,7 +1,7 @@
 # smc_fan_util
 
 A small utility to control your MacBook's fans.  
-(currently only applies to 15-inch MacBooks from 2016 to 2019. You can edit the code yourself to make it work on other Macs.)
+(currently only applies to 15-inch MacBooks from 2016 to 2019 without Vega graphics. Support for other models is not guaranteed. You can edit the fan curve in the code yourself to make it work on other Macs.)
 
 - Auto-fan-stop.
 - Custom or SMC-defined fan curve.
