@@ -7,7 +7,7 @@ A small utility to control your MacBook's fans.
 - Custom or SMC-defined fan curve.
 - Manually control fan speeds.
 
-You can use this tool with [my-hammerspoon-config](https://github.com/charlie0129/my-hammerspoon-config). A nice little GUI and a icon on your menu bar will be placed on your menu bar (see [here](https://github.com/charlie0129/my-hammerspoon-config/blob/master/README.md)).  
+You can use this tool with [my-hammerspoon-config](https://github.com/charlie0129/my-hammerspoon-config). A nice little GUI and a icon will be placed on your menu bar (see [here](https://github.com/charlie0129/my-hammerspoon-config/blob/master/README.md)).  
 
 ### Why I created this utility:
 As we all know, the recent 15-inch MacBook Pros do not have a auto-fan-stop feature. That is to say, when the computer is idle, the fans automatically stops, like the fans on the 13-inch MacBook Pros do. Due to the lack of auto-fan-stop feature, my 15-inch MacBook Pro is always taking in dust and debris even if the computer is idle, which results in the heatsink being blocked. If I just stop the fans completely(this feature is provided) and I forgot to turn it back on, the computer will overheat. I need the fans to stop if everything is under control and the computer is idle. And if any monitored component tmperature reaches a certain threshold, I need the fans to turn back on. So, a automation tool is needed and I created this tools.  
