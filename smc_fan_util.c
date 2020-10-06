@@ -808,7 +808,9 @@ int main(int argc, char *argv[])
 
             if (CPUTemperatureNow < 54)
             {
-                // turn off fans
+                // set fans to manual mode
+                // to allow quick slow-down
+                // implemented in the code smoothing fan speed switches
                 setFanSpeed(0, 2160);
                 setFanSpeed(1, 2000);
             }
@@ -895,6 +897,7 @@ int main(int argc, char *argv[])
 
                     if (areFansOn)
                     {
+                        // if previously the fans are on
                         if (avgCPUTemp > 55.0)
                         {
                             fan0TargetSpeed = 132.798333 * avgCPUTemp - 5940.698333;
@@ -910,7 +913,9 @@ int main(int argc, char *argv[])
                     }
                     else
                     {
-                        if (avgCPUTemp > 57.0)
+                        // if previously the fans are off,
+                        // a higher fan-start temperature will be given.
+                        if (avgCPUTemp > 57.5)
                         {
                             fan0TargetSpeed = 132.798333 * avgCPUTemp - 5940.698333;
                         }
