@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <IOKit/IOKitLib.h>
+#include <syslog.h>
 #include "smc.h"
 
 #ifndef DEBUG
@@ -25,6 +26,8 @@ void signal_handler(int signal)
     printf("daemon ended.\n");
     #endif
     smc_close();
+    syslog(LOG_NOTICE, "smc_fan_util daemon terminated.");
+    closelog();
     exit(EXIT_SUCCESS);
 }
 
@@ -32,6 +35,7 @@ static void daemonize()
 {
     pid_t pid;
 
+    // fork off the parent process
     pid = fork();
 
     if (pid < 0)
@@ -39,16 +43,22 @@ static void daemonize()
         exit(EXIT_FAILURE);
     }
 
+    // success: let the parent terminate
     if (pid > 0)
     {
         exit(EXIT_SUCCESS);
     }
 
+    // Create a new session. 
+    // The calling process becomes the leader of the new session
+    // and the process group leader of the new process group. 
+    // The process is now detached from its controlling terminal (CTTY).
     if (setsid() < 0)
     {
         exit(EXIT_FAILURE);
     }
 
+    // handle signals.
     signal(SIGTERM, signal_handler);
     signal(SIGHUP, signal_handler);
 
@@ -59,16 +69,21 @@ static void daemonize()
         exit(EXIT_FAILURE);
     }
 
+    // success: let the parent terminate
     if (pid > 0)
     {
         exit(EXIT_SUCCESS);
     }
 
+    // set new file permissions
     umask(0);
 
+    // close file descriptors
     close(STDIN_FILENO);
     close(STDOUT_FILENO);
     close(STDERR_FILENO);
+
+    openlog("smc_fan_util", LOG_PID, LOG_DAEMON);
 }
 
 float getFloatFromVal(SMCVal_t val)
@@ -723,6 +738,7 @@ int main(int argc, char *argv[])
             #ifdef DAEMON
             smc_close();
             daemonize();
+            syslog (LOG_NOTICE, "smc_fan_util daemon started.");
             smc_init();
             #endif
             const size_t CPU_TEMP_LOG_DURATION = 90;
@@ -790,6 +806,7 @@ int main(int argc, char *argv[])
             #ifdef DAEMON
             smc_close();
             daemonize();
+            syslog (LOG_NOTICE, "smc_fan_util daemon started.");
             smc_init();
             #endif
             const double fan0MinSpeed = getFloatFromKey("F0Mn");
