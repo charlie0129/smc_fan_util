@@ -14,6 +14,14 @@ As we all know, the recent 15-inch MacBook Pros do not have a auto-fan-stop feat
 This tool is made only because I needed auto-fan-stop and manual fan speed control features on my 2018 15-inch MacBook Pro. Therefore, support for other MacBook models is limited.  
 Since I use this tool every day, I will continue to update it if I encounter bugs or I need more features.  
 
+### How to build
+1. Xcode or Xcode command line tools should be installed. If not, install it.
+2. Clone this repository.  
+In terminal: `git clone https://github.com/charlie0129/smc_fan_util.git`
+3. `cd smc_fan_util`
+4. `make`
+5. The executable file is in the `build` folder. You can `cd build` to check it out and use it.
+
 ---
 Personally, I use the `--SMC-enhanced` option the most. So, this option is probably the most maintained option.  
 
