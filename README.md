@@ -20,7 +20,7 @@ Since I use this tool every day, I will continue to update it if I encounter bug
 In terminal: `git clone https://github.com/charlie0129/smc_fan_util.git`
 3. `cd smc_fan_util`
 4. `make`
-5. The executable file is in the `build` folder. You can `cd build` to check it out and use it.
+5. The executable file is in the `build` folder. You can `cd build` to check it out and use it. For example: `sudo ./smc_fan_util -m 100`
 
 ---
 Personally, I use the `--SMC-enhanced` option the most. So, this option is probably the most maintained option.  
