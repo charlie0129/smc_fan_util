@@ -432,7 +432,7 @@ void printUsage()
             "    Note: This utility only applies to Intel Macs with 2 fans.\n"
             "    !!!You should execute this utility with root privileges!!!\n"
             "SYNOPSIS:\n"
-            "    smc_fan_util [-a] | [-A] | [--SMC-enhanced] | [-d] | [-h] | [-i]\n"
+            "    smc_fan_util [-a] | [-A] | [--SMC-enhanced --offset offset] | [-d] | [-h] | [-i]\n"
             "               [-m speed_percentage] | [-m speed_left speed_right]\n"
             "OPTIONS:\n"
             "    -a: Auto mode (controlled by SMC).\n"
@@ -793,7 +793,7 @@ int main(int argc, char *argv[])
     }
     else if (!strcmp(argv[1], "--SMC-enhanced"))
     {
-        if (argc != 2)
+        if (argc != 2 && argc != 4)
         {
             puts("Incorrect parameters.");
             puts("Use option \"-h\" for help.");
@@ -816,12 +816,18 @@ int main(int argc, char *argv[])
             size_t idxFanSpeedHistory = 0;
             double CPUTempHistory[CPU_TEMP_LOG_DURATION] = {0.0};
             double fanSpeedHistory[FAN_SPEED_LOG_DURATION] = {0.0};
+            double CPUTempOffset = 0.0;
             double THUNDERBOLT_TEMPERATURE_LIMIT = 68;
             double BATTERY_TEMPERATURE_LIMIT = 40.5;
             bool areFansOn = true;
 
+            if (argc == 4)
+            {
+                CPUTempOffset = atof(argv[3]);
+            }
+
             sleep(2);
-            double CPUTemperatureNow = ReadMaxCPUTemperature();
+            double CPUTemperatureNow = ReadMaxCPUTemperature() + CPUTempOffset;
 
             if (CPUTemperatureNow < 54)
             {
@@ -859,7 +865,7 @@ int main(int argc, char *argv[])
                     idxFanSpeedHistory = 0;
                 }
 
-                CPUTempHistory[idxCPUTempHistory] = ReadMaxCPUTemperature();
+                CPUTempHistory[idxCPUTempHistory] = ReadMaxCPUTemperature() + CPUTempOffset;
                 fanSpeedHistory[idxFanSpeedHistory] = getFloatFromKey("F0Ac");
                 #ifdef DEBUG
                 printf("cur: %.1f | ", CPUTempHistory[idxCPUTempHistory]);
