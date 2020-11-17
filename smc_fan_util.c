@@ -885,6 +885,11 @@ int main(int argc, char *argv[])
                     }
                 }
 
+                if (getFloatFromKey("F0Tg") > fan0MinSpeed + 40)
+                {
+                    isFan0LowRPM = false;
+                }
+
                 for (size_t i = 0; i < CPU_TEMP_LOG_DURATION; i++)
                 {
                     sumCPUTempHistory += CPUTempHistory[i];
