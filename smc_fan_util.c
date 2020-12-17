@@ -19,6 +19,7 @@
 // improve augument parser
 // improve error handling
 // use json configuration file
+// print warnings when the user sets a fan speed above apple's limits
 
 void signal_handler(int signal)
 {
