@@ -605,7 +605,7 @@ int main(int argc, char *argv[])
         puts("Incorrect number of parameters.");
         puts("Use option \"-h\" for help.");
         // printUsage();
-        exit_failure();
+        exit(EXIT_FAILURE);
     }
 
     smc_init();
