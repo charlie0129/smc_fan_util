@@ -819,7 +819,8 @@ int main(int argc, char *argv[])
             double fanSpeedHistory[FAN_SPEED_LOG_DURATION] = {0.0};
             double CPUTempOffset = 0.0;
             double THUNDERBOLT_TEMPERATURE_LIMIT = 68;
-            double BATTERY_TEMPERATURE_LIMIT = 40.5;
+            double BATTERY_TEMPERATURE_LIMIT = 40.0;
+            double PALM_REST_TEMPERATURE_LIMIT = 36.2;
             bool areFansOn = true;
 
             if (argc == 4)
@@ -906,11 +907,15 @@ int main(int argc, char *argv[])
                 if (isFan0LowRPM
                     && avgCPUTemp < 61.0
                     && getFloatFromKey("TB0T") <= BATTERY_TEMPERATURE_LIMIT  // battery
+                    && getFloatFromKey("TB1T") <= BATTERY_TEMPERATURE_LIMIT  // battery
                     && getFloatFromKey("TTLD") <= THUNDERBOLT_TEMPERATURE_LIMIT  // thunderbolt left
-                    && getFloatFromKey("TTRD") <= THUNDERBOLT_TEMPERATURE_LIMIT) // thunderbolt right
+                    && getFloatFromKey("TTRD") <= THUNDERBOLT_TEMPERATURE_LIMIT // thunderbolt right
+                    && getFloatFromKey("Ts1P") <= PALM_REST_TEMPERATURE_LIMIT // palm rest
+                    && getFloatFromKey("Ts0P") <= PALM_REST_TEMPERATURE_LIMIT) // palm rest
                 {
                     THUNDERBOLT_TEMPERATURE_LIMIT = 68;
-                    BATTERY_TEMPERATURE_LIMIT = 40.5;
+                    BATTERY_TEMPERATURE_LIMIT = 40.0;
+                    PALM_REST_TEMPERATURE_LIMIT = 36.2;
 
                     // if fans are previously auto,
                     // make it smooth when switching from auto to forced mode.
@@ -977,7 +982,8 @@ int main(int argc, char *argv[])
                 else
                 {
                     THUNDERBOLT_TEMPERATURE_LIMIT = 66.8;
-                    BATTERY_TEMPERATURE_LIMIT = 39.8;
+                    BATTERY_TEMPERATURE_LIMIT = 39.2;
+                    PALM_REST_TEMPERATURE_LIMIT = 35.2;
 
                     if (getFloatFromKey("F0Md"))
                     {
