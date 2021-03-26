@@ -1,7 +1,7 @@
 # smc_fan_util
 
 A small utility to control your MacBook's fans.  
-(currently only applies to 15-inch MacBook Pros from 2016 to 2019 without the Vega graphics card. Support for other models is not guaranteed. You can edit the fan curve in the code yourself to make it work on other Macs.)
+(only applies to 15-inch MacBook Pros from 2016 to 2019 without the Vega graphics card. Currently no support for other models is provided. You can edit the fan curve in the code yourself to make it work on other Macs (mainly fan speed limits).)
 
 - Auto-fan-stop.
 - Custom or SMC-defined fan curve.
@@ -10,7 +10,7 @@ A small utility to control your MacBook's fans.
 You can use this tool with [my-hammerspoon-config](https://github.com/charlie0129/my-hammerspoon-config). A nice little GUI and a icon will be placed on your menu bar (see [here](https://github.com/charlie0129/my-hammerspoon-config/blob/master/README.md)).  
 
 ### Why I created this utility:
-As we all know, the recent 15-inch MacBook Pros do not have a auto-fan-stop feature. That is to say, when the computer is idle, the fans automatically stops, like the fans on the 13-inch MacBook Pros do. Due to the lack of auto-fan-stop feature, my 15-inch MacBook Pro is always taking in dust and debris even if the computer is idle, which results in the heatsink being blocked. If I just stop the fans completely(this feature is provided) and I forgot to turn it back on, the computer will overheat. I need the fans to stop if everything is under control and the computer is idle. And if any monitored component tmperature reaches a certain threshold, I need the fans to turn back on. So, a automation tool is needed and I created this tools.  
+As we all know, the recent 15-inch MacBook Pros do not have a auto-fan-stop feature. That is to say, when the computer is idle, the fans automatically stops, like the fans on the 13-inch MacBook Pros do. Due to the lack of auto-fan-stop feature, my 15-inch MacBook Pro is always taking in dust and debris even if the computer is idle, which results in the heatsink being blocked. If I just stop the fans completely (which is made possible by this tool) and I forgot to turn it back on, the computer will overheat. I need the fans to stop if everything is under control and the computer is idle. And if any monitored component tmperature reaches a certain threshold, I need the fans to turn back on. So, a automation tool is needed and I created this tools.  
 This tool is made only because I needed auto-fan-stop and manual fan speed control features on my 2018 15-inch MacBook Pro. Therefore, support for other MacBook models is limited.  
 Since I use this tool every day, I will continue to update it if I encounter bugs or I need more features.  
 
